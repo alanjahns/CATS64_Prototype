@@ -176,3 +176,7 @@ The sprite workshop in the parent `C64` directory is part of the long-term pipel
 - Create placeholder player and cat visuals
 - Build the yard movement and food attraction loop first
 - Delay polish until the core chaos-management gameplay feels strong
+
+## Repo Note
+
+This repository is public and is also intended to show clean development progress over time.
