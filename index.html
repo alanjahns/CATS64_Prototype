@@ -109,9 +109,11 @@
             <div class="marker marker-player" id="playerMarker" aria-label="Future player start">
               <span>P</span>
             </div>
-            <div class="marker marker-cat marker-cat-a" id="catA" aria-label="Cat A"></div>
-            <div class="marker marker-cat marker-cat-b" id="catB" aria-label="Cat B"></div>
-            <div class="marker marker-cat marker-cat-c" id="catC" aria-label="Cat C"></div>
+            <div class="marker marker-cat marker-cat-a" id="catA" aria-label="Cat A"><span class="cat-status"></span></div>
+            <div class="marker marker-cat marker-cat-b" id="catB" aria-label="Cat B"><span class="cat-status"></span></div>
+            <div class="marker marker-cat marker-cat-c" id="catC" aria-label="Cat C"><span class="cat-status"></span></div>
+            <div class="spray-mark spray-tree" id="sprayTree"></div>
+            <div class="spray-mark spray-shed" id="sprayShed"></div>
           </div>
         </div>
       </div>
@@ -163,6 +165,14 @@
             <p>Placeholder cat positions to suggest future gathering lanes and pressure zones.</p>
           </article>
           <article class="legend-item">
+            <strong>Ear Tip</strong>
+            <p>Cats with a visible ear-tip marker represent altered cats. Cats without it are currently unaltered.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Spray Mark</strong>
+            <p>Male unaltered cats may briefly stop and mark scenery like the shed or tree, leaving a visible stain marker.</p>
+          </article>
+          <article class="legend-item">
             <strong>Gate</strong>
             <p>Yard edge openings that can later connect the backyard to the front driveway or adjacent map spaces.</p>
           </article>
@@ -178,10 +188,14 @@
     const foodMeterText = document.getElementById("foodMeterText");
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
+    const sprayMarks = {
+      tree: document.getElementById("sprayTree"),
+      shed: document.getElementById("sprayShed")
+    };
     const catStates = [
-      { element: document.getElementById("catA"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true },
-      { element: document.getElementById("catB"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true },
-      { element: document.getElementById("catC"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true }
+      { element: document.getElementById("catA"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "male", sprayingTimer: 0, sprayCooldown: 420 },
+      { element: document.getElementById("catB"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: true, sex: "female", sprayingTimer: 0, sprayCooldown: 420 },
+      { element: document.getElementById("catC"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "female", sprayingTimer: 0, sprayCooldown: 420 }
     ];
     const foodDots = [];
     const pressedKeys = new Set();
@@ -202,6 +216,7 @@
     let nextFoodId = 1;
     let spawnCooldown = 240;
     const maxCats = 20;
+    let audioContext;
     const houseBounds = {
       left: 31,
       right: 69,
@@ -220,6 +235,55 @@
       { x: 92, y: 30 },
       { x: 8, y: 78 }
     ];
+    const sprayTargets = [
+      { key: "shed", x: 16, y: 19 },
+      { key: "tree", x: 19, y: 63 }
+    ];
+
+    function chance(probability) {
+      return Math.random() < probability;
+    }
+
+    function ensureAudioContext() {
+      if (!audioContext) {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtor) {
+          audioContext = new AudioCtor();
+        }
+      }
+      return audioContext;
+    }
+
+    function playSprayBlip() {
+      const ctx = ensureAudioContext();
+      if (!ctx) {
+        return;
+      }
+
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(420, ctx.currentTime);
+      gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.045, ctx.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.14);
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.15);
+    }
+
+    function pickAlteredState() {
+      return chance(0.28);
+    }
+
+    function pickSex() {
+      return chance(0.5) ? "male" : "female";
+    }
 
     function createExtraCats() {
       const variants = ["marker-cat-a", "marker-cat-b", "marker-cat-c"];
@@ -228,6 +292,7 @@
         const element = document.createElement("div");
         element.className = `marker marker-cat ${variants[index % variants.length]}`;
         element.setAttribute("aria-label", `Cat ${index + 1}`);
+        element.innerHTML = '<span class="cat-status"></span>';
         yard.appendChild(element);
 
         catStates.push({
@@ -240,7 +305,11 @@
           foodTargetId: null,
           satisfiedTimer: 0,
           contactCooldown: 0,
-          active: false
+          active: false,
+          altered: pickAlteredState(),
+          sex: pickSex(),
+          sprayingTimer: 0,
+          sprayCooldown: 420 + Math.random() * 240
         });
       }
     }
@@ -285,6 +354,9 @@
       for (const cat of catStates) {
         cat.element.classList.toggle("is-hidden", !cat.active);
         cat.element.classList.toggle("is-satisfied", cat.satisfiedTimer > 0);
+        cat.element.classList.toggle("is-altered", cat.altered);
+        cat.element.classList.toggle("is-spraying", cat.sprayingTimer > 0);
+        cat.element.classList.toggle("is-male", cat.sex === "male");
         if (!cat.active) {
           continue;
         }
@@ -306,6 +378,37 @@
       } else {
         tripCounterNote.textContent = "Testing mode: trips are tracked, but game over is disabled for now.";
       }
+    }
+
+    function triggerSpray(targetKey) {
+      const marker = sprayMarks[targetKey];
+      if (!marker) {
+        return;
+      }
+
+      marker.classList.remove("is-active");
+      void marker.offsetWidth;
+      marker.classList.add("is-active");
+      playSprayBlip();
+    }
+
+    function maybeStartSpray(cat) {
+      if (cat.altered || cat.sex !== "male" || cat.satisfiedTimer > 0 || cat.sprayingTimer > 0 || cat.sprayCooldown > 0) {
+        return false;
+      }
+
+      for (const target of sprayTargets) {
+        if (distance(cat.x, cat.y, target.x, target.y) < 7 && chance(0.012)) {
+          cat.sprayingTimer = 55;
+          cat.sprayCooldown = 720;
+          cat.wanderTimer = 0;
+          triggerSpray(target.key);
+          statusText.textContent = `A male unaltered cat sprayed near the ${target.key}.`;
+          return true;
+        }
+      }
+
+      return false;
     }
 
     function dropFood() {
@@ -447,6 +550,18 @@
           cat.contactCooldown -= delta;
         }
 
+        if (cat.sprayCooldown > 0) {
+          cat.sprayCooldown -= delta;
+        }
+
+        if (cat.sprayingTimer > 0) {
+          cat.sprayingTimer -= delta;
+          if (cat.sprayingTimer < 0) {
+            cat.sprayingTimer = 0;
+          }
+          continue;
+        }
+
         if (cat.satisfiedTimer > 0) {
           cat.satisfiedTimer -= delta;
           if (cat.satisfiedTimer < 0) {
@@ -475,6 +590,7 @@
 
           cat.x = clamp(cat.x, 7, 92);
           cat.y = clamp(cat.y, 7, 92);
+          maybeStartSpray(cat);
           continue;
         }
 
@@ -494,6 +610,7 @@
               cat.x = nextX;
               cat.y = nextY;
             }
+            maybeStartSpray(cat);
           }
         } else if (!playerState.refilling && !playerState.hidden) {
           cat.foodTargetId = null;
@@ -525,6 +642,7 @@
             if (cat.y <= 7 || cat.y >= 92) {
               cat.wanderAngle = -cat.wanderAngle;
             }
+            maybeStartSpray(cat);
           }
         } else {
           cat.foodTargetId = null;
@@ -551,6 +669,7 @@
           if (cat.y <= 7 || cat.y >= 92) {
             cat.wanderAngle = -cat.wanderAngle;
           }
+          maybeStartSpray(cat);
         }
 
         cat.x = clamp(cat.x, 7, 92);

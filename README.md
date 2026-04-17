@@ -6,7 +6,7 @@ This `prototype` directory is for the modern first-pass version of the game. We 
 
 ## Game Summary
 
-The player moves around a fenced yard and tries to keep order while cats gather around food, crowd the play space, and create escalating problems. Some cats are friendly and mainly need feeding and management. Others are feral and eventually need to be trapped, processed through TNR, and released. Ear-tipped cats show which ones have already been handled.
+The player moves around a fenced yard and tries to keep order while cats gather around food, crowd the play space, and create escalating problems. Some cats are friendly and mainly need feeding and management. Others are feral and eventually need to be trapped, processed through TNVR, and released. Ear-tipped cats show which ones have already been handled.
 
 The game should feel hectic, readable, and strategic rather than realistic or slow. The tension comes from placing food at the right moments, moving carefully, preventing traffic jams, and recovering quickly when a food spill or cat crowd throws the yard out of control.
 
@@ -29,7 +29,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 - Additional cats appear over time, increasing yard pressure
 - Friendly cats and feral cats should feel behaviorally different
 - Traps can be placed to capture feral cats
-- Captured cats are processed and released through the TNR loop
+- Captured cats are processed and released through the TNVR loop
 - Ear-tipped cats visually indicate previously fixed cats
 - The challenge comes from timing, movement, placement, and crowd control
 
@@ -39,7 +39,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 - Feed cats efficiently without creating impossible crowding
 - Avoid getting trapped, blocked, or overwhelmed
 - Use traps intelligently on feral cats
-- Gradually improve the state of the yard through TNR
+- Gradually improve the state of the yard through TNVR
 - Survive increasing pressure long enough to feel mastery over the system
 
 ## Failure Pressure
@@ -76,7 +76,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 - Recovery windows for the player
 - How often chaos happens and whether it feels fair
 
-### 4. Trap and TNR loop
+### 4. Trap and TNVR loop
 
 - Trap placement rules
 - Capture conditions
@@ -100,7 +100,7 @@ The first prototype is not meant to look like a finished C64 game. It is meant t
 - Does feeding plus crowd control create meaningful decisions?
 - Does the yard become tense in a good way instead of just frustrating?
 - Can the player read what is happening when many cats are active?
-- Does the trap and TNR loop feel naturally connected to the feeding loop?
+- Does the trap and TNVR loop feel naturally connected to the feeding loop?
 - Which mechanics are essential enough to survive a later C64 port?
 
 ## Development Approach
@@ -135,7 +135,7 @@ Once the design is proven, we can decide what gets ported directly, what gets si
 2. Tune movement and cat attraction until the loop feels good
 3. Add crowding and blocking behavior
 4. Add feeder trip or spill chaos events
-5. Add feral cats, traps, and a basic TNR loop
+5. Add feral cats, traps, and a basic TNVR loop
 6. Add progression and difficulty ramping
 7. Identify the minimum fun version of the game
 8. Review the design against real C64 constraints
@@ -153,7 +153,7 @@ When we eventually move toward the C64 version, we should expect to preserve:
 - the role of food placement
 - crowd control pressure
 - friendly versus feral cat distinction
-- traps and TNR as the long-term objective
+- traps and TNVR as the long-term objective
 - the retro top-down presentation
 
 We should also expect to revisit:
