@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CATS64 Prototype</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Milestone 01</p>
+        <h1>CATS64 Yard Prototype</h1>
+        <p class="summary">
+          First-pass playfield layout for a top-down yard. This build focuses on the fenced
+          space, readable landmarks, and a retro-feeling prototype frame for future movement,
+          cat AI, food placement, and chaos systems.
+        </p>
+      </div>
+      <section class="notes">
+        <h2>Current Scope</h2>
+        <ul>
+          <li>Visible fenced yard boundaries</li>
+          <li>Placeholder environment layout</li>
+          <li>Centered house and backyard flow</li>
+        </ul>
+      </section>
+    </header>
+
+    <section class="playfield-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-label">Prototype View</p>
+          <h2>Managed Yard</h2>
+        </div>
+        <div class="legend">
+          <span class="chip chip-fence">Fence</span>
+          <span class="chip chip-object">Objects</span>
+          <span class="chip chip-zone">Open Space</span>
+        </div>
+      </div>
+
+      <div class="yard-frame">
+        <div class="yard-grid" aria-label="Top-down fenced yard prototype">
+          <div class="yard">
+            <div class="zone zone-patch"></div>
+            <div class="zone zone-dirt"></div>
+            <div class="zone zone-shadow"></div>
+            <div class="zone zone-driveway"></div>
+
+            <div class="fence fence-top"></div>
+            <div class="fence fence-right"></div>
+            <div class="fence fence-bottom"></div>
+            <div class="fence fence-left"></div>
+
+            <div class="gate gate-bottom"></div>
+            <div class="gate gate-top"></div>
+
+            <div class="object house" aria-label="House">
+              <span>House</span>
+            </div>
+            <div class="object doorway" aria-label="Back door">
+              <span>Door</span>
+            </div>
+            <div class="object shed" aria-label="Storage shed">
+              <span>Shed</span>
+            </div>
+            <div class="object water" aria-label="Water bowl">
+              <span>Water</span>
+            </div>
+            <div class="object crate crate-a" aria-label="Trap staging crate">
+              <span>Crate</span>
+            </div>
+            <div class="object crate crate-b" aria-label="Supplies crate">
+              <span>Crate</span>
+            </div>
+            <div class="object tree" aria-label="Tree">
+              <span>Tree</span>
+            </div>
+
+            <div class="marker marker-player" aria-label="Future player start">
+              <span>P</span>
+            </div>
+            <div class="marker marker-cat marker-cat-a" aria-label="Future cat lane"></div>
+            <div class="marker marker-cat marker-cat-b" aria-label="Future cat lane"></div>
+            <div class="marker marker-cat marker-cat-c" aria-label="Future cat lane"></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="qa-panel">
+        <div class="qa-card">
+          <h3>What To QA</h3>
+          <p>Does the yard feel like a strong top-down play space with enough open lanes, pressure points, and obvious landmarks?</p>
+        </div>
+        <div class="qa-card">
+          <h3>Next Intended Milestone</h3>
+          <p>Player and cat movement with placeholder graphics, using this layout as the first real navigation test bed.</p>
+        </div>
+      </section>
+
+      <section class="legend-detail">
+        <h3>Yard Legend</h3>
+        <div class="legend-grid">
+          <article class="legend-item">
+            <strong>House</strong>
+            <p>Main anchor of the map. The player starts from the back door and future levels may extend toward the front driveway.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Door</strong>
+            <p>Back door exit where the player enters the yard and brings food out from inside the house.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Shed</strong>
+            <p>Smaller shed landmark where kittens may sometimes be born underneath, encouraging food placement nearby.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Water</strong>
+            <p>Water bowl area that helps define a cat activity cluster without implying a permanent feeder object.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Crate</strong>
+            <p>Placeholder supply or trap staging object that can later become a movement obstacle.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Tree</strong>
+            <p>Large environmental landmark that breaks up open space and creates navigation pressure.</p>
+          </article>
+          <article class="legend-item">
+            <strong>P</strong>
+            <p>Future player start marker just outside the back door for testing house-to-yard movement flow.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Cat Markers</strong>
+            <p>Placeholder cat positions to suggest future gathering lanes and pressure zones.</p>
+          </article>
+          <article class="legend-item">
+            <strong>Gate</strong>
+            <p>Yard edge openings that can later connect the backyard to the front driveway or adjacent map spaces.</p>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
