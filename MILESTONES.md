@@ -4,7 +4,7 @@
 2. DONE - Add player movement with placeholder graphics and responsive controls.
 3. Add cat movement with placeholder graphics and multiple visible cat instances.
 4. Implement collision and movement boundaries for the player, cats, and yard obstacles.
-5. Add food placement by the player.
+5. DONE - Add food placement by the player.
 6. Ask about the exact food placement dynamic, including how the fire button should place and manage food from the house.
 7. Make cats detect nearby food and move toward it.
 8. Make cats gather around food in readable groups.
