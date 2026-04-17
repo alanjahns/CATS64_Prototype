@@ -41,9 +41,29 @@
         </div>
       </div>
 
+      <section class="controls-bar">
+        <div class="controls-card">
+          <strong>Controls</strong>
+          <p>`WASD` or arrow keys to move. Press `Space` to drop a food dot.</p>
+        </div>
+        <div class="controls-card">
+          <strong>Status</strong>
+          <p id="statusText">Player can move through the yard and place simple food markers for future cat attraction tests.</p>
+        </div>
+        <div class="controls-card">
+          <strong>Food Supply</strong>
+          <div class="food-meter" aria-label="Player food supply">
+            <div class="food-meter-track">
+              <div class="food-meter-fill" id="foodMeterFill"></div>
+            </div>
+            <p id="foodMeterText">Food: 10 / 10</p>
+          </div>
+        </div>
+      </section>
+
       <div class="yard-frame">
         <div class="yard-grid" aria-label="Top-down fenced yard prototype">
-          <div class="yard">
+          <div class="yard" id="yard">
             <div class="zone zone-patch"></div>
             <div class="zone zone-dirt"></div>
             <div class="zone zone-shadow"></div>
@@ -60,8 +80,8 @@
             <div class="object house" aria-label="House">
               <span>House</span>
             </div>
-            <div class="object doorway" aria-label="Back door">
-              <span>Door</span>
+            <div class="object doorway" id="doorwayMarker" aria-label="Back door">
+              <span>Back Door</span>
             </div>
             <div class="object shed" aria-label="Storage shed">
               <span>Shed</span>
@@ -79,7 +99,7 @@
               <span>Tree</span>
             </div>
 
-            <div class="marker marker-player" aria-label="Future player start">
+            <div class="marker marker-player" id="playerMarker" aria-label="Future player start">
               <span>P</span>
             </div>
             <div class="marker marker-cat marker-cat-a" aria-label="Future cat lane"></div>
@@ -143,5 +163,161 @@
       </section>
     </section>
   </main>
+  <script>
+    const yard = document.getElementById("yard");
+    const playerMarker = document.getElementById("playerMarker");
+    const statusText = document.getElementById("statusText");
+    const foodMeterFill = document.getElementById("foodMeterFill");
+    const foodMeterText = document.getElementById("foodMeterText");
+    const pressedKeys = new Set();
+    const playerState = {
+      x: 47,
+      y: 65,
+      speed: 0.22,
+      food: 10,
+      foodCapacity: 10,
+      refilling: false,
+      refillProgress: 0,
+      hidden: false
+    };
+    let lastFrame = performance.now();
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function renderPlayer() {
+      playerMarker.style.left = `${playerState.x}%`;
+      playerMarker.style.top = `${playerState.y}%`;
+      playerMarker.classList.toggle("is-hidden", playerState.hidden);
+    }
+
+    function renderFoodMeter() {
+      const percent = (playerState.food / playerState.foodCapacity) * 100;
+      foodMeterFill.style.width = `${percent}%`;
+      foodMeterText.textContent = `Food: ${playerState.food} / ${playerState.foodCapacity}`;
+    }
+
+    function dropFood() {
+      if (playerState.refilling) {
+        statusText.textContent = "Player is inside the house getting more food.";
+        return;
+      }
+
+      if (playerState.food <= 0) {
+        statusText.textContent = "Out of food. Go to the back door to refill.";
+        return;
+      }
+
+      const dot = document.createElement("div");
+      dot.className = "food-dot";
+      dot.style.left = `${playerState.x + 1.7}%`;
+      dot.style.top = `${playerState.y + 1.7}%`;
+      dot.title = "Food";
+      yard.appendChild(dot);
+      playerState.food -= 1;
+      renderFoodMeter();
+      statusText.textContent = `Food placed at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
+    }
+
+    function nearDoorway() {
+      return Math.abs(playerState.x - 50) < 4.5 && Math.abs(playerState.y - 58.5) < 5.5;
+    }
+
+    function startRefill() {
+      if (playerState.refilling || playerState.food === playerState.foodCapacity) {
+        return;
+      }
+
+      playerState.refilling = true;
+      playerState.refillProgress = 0;
+      playerState.hidden = true;
+      statusText.textContent = "Player went inside the house to get more food.";
+      renderPlayer();
+    }
+
+    function step(now) {
+      const delta = Math.min((now - lastFrame) / 16.67, 2);
+      lastFrame = now;
+      let moved = false;
+
+      if (playerState.refilling) {
+        playerState.refillProgress += 0.06 * delta;
+        const refillAmount = Math.floor(playerState.refillProgress);
+
+        if (refillAmount > 0) {
+          playerState.food = clamp(playerState.food + refillAmount, 0, playerState.foodCapacity);
+          playerState.refillProgress -= refillAmount;
+          renderFoodMeter();
+        }
+
+        if (playerState.food >= playerState.foodCapacity) {
+          playerState.refilling = false;
+          playerState.hidden = false;
+          playerState.x = 47;
+          playerState.y = 65;
+          renderPlayer();
+          renderFoodMeter();
+          statusText.textContent = "Food restocked. Player returned to the yard.";
+        }
+      } else {
+        if (pressedKeys.has("arrowup") || pressedKeys.has("w")) {
+          playerState.y -= playerState.speed * delta;
+          moved = true;
+        }
+        if (pressedKeys.has("arrowdown") || pressedKeys.has("s")) {
+          playerState.y += playerState.speed * delta;
+          moved = true;
+        }
+        if (pressedKeys.has("arrowleft") || pressedKeys.has("a")) {
+          playerState.x -= playerState.speed * delta;
+          moved = true;
+        }
+        if (pressedKeys.has("arrowright") || pressedKeys.has("d")) {
+          playerState.x += playerState.speed * delta;
+          moved = true;
+        }
+
+        playerState.x = clamp(playerState.x, 6, 91);
+        playerState.y = clamp(playerState.y, 6, 91);
+
+        if (moved) {
+          renderPlayer();
+          if (nearDoorway() && playerState.food < playerState.foodCapacity) {
+            startRefill();
+          } else {
+            statusText.textContent = `Player moving at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
+          }
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    document.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " "].includes(key)) {
+        event.preventDefault();
+      }
+
+      if (key === " ") {
+        if (!event.repeat) {
+          dropFood();
+        }
+        return;
+      }
+
+      pressedKeys.add(key);
+    });
+
+    document.addEventListener("keyup", (event) => {
+      pressedKeys.delete(event.key.toLowerCase());
+    });
+
+    renderPlayer();
+    renderFoodMeter();
+    requestAnimationFrame(step);
+  </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 # CATS64 Prototype Milestones
 
-1. Create a working top-down yard playfield with visible boundaries and placeholder environment layout.
-2. Add player movement with placeholder graphics and responsive controls.
+1. DONE - Create a working top-down yard playfield with visible boundaries and placeholder environment layout.
+2. DONE - Add player movement with placeholder graphics and responsive controls.
 3. Add cat movement with placeholder graphics and multiple visible cat instances.
 4. Implement collision and movement boundaries for the player, cats, and yard obstacles.
 5. Add food placement by the player.

@@ -177,6 +177,51 @@ h1 {
     #f0ddb6;
 }
 
+.controls-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.controls-card {
+  padding: 0.9rem 1rem;
+  border: 3px solid var(--line);
+  background: #f8edd1;
+}
+
+.controls-card strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.controls-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.food-meter {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.food-meter-track {
+  width: 100%;
+  height: 18px;
+  border: 2px solid var(--line);
+  background: #f0dfba;
+}
+
+.food-meter-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #d08b45 0%, #f0c95e 100%);
+  transition: width 120ms ease;
+}
+
 .yard-grid {
   aspect-ratio: 4 / 3;
 }
@@ -343,11 +388,28 @@ h1 {
 .doorway {
   left: 45.5%;
   top: 54.5%;
-  width: 9%;
+  width: 11%;
   height: 8%;
   color: #f7f0de;
   background: linear-gradient(180deg, #8c5a37 0%, var(--door) 100%);
   z-index: 3;
+}
+
+.doorway span {
+  font-size: clamp(0.52rem, 0.9vw, 0.8rem);
+}
+
+.doorway::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -34%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid #fff6df;
 }
 
 .shed {
@@ -420,6 +482,7 @@ h1 {
   width: 5.5%;
   aspect-ratio: 1;
   z-index: 2;
+  transform: translate(-50%, -50%);
 }
 
 .marker-player {
@@ -429,6 +492,11 @@ h1 {
   background: var(--player);
   color: #f7f0de;
   font-weight: 800;
+  z-index: 5;
+}
+
+.marker-player.is-hidden {
+  opacity: 0;
 }
 
 .marker-cat {
@@ -473,6 +541,17 @@ h1 {
   left: 72%;
   top: 38%;
   background: var(--cat-3);
+}
+
+.food-dot {
+  position: absolute;
+  width: 2.2%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: radial-gradient(circle at 30% 30%, #fff4a5 0%, #f0c95e 70%);
+  transform: translate(-50%, -50%);
+  z-index: 4;
 }
 
 .qa-panel {
@@ -538,6 +617,10 @@ h1 {
   }
 
   .qa-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .controls-bar {
     grid-template-columns: 1fr;
   }
 
