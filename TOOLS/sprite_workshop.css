@@ -1,0 +1,332 @@
+:root {
+  --bg: #efe2c2;
+  --bg-2: #e0c995;
+  --panel: #fff8ea;
+  --panel-2: #f5e6c2;
+  --ink: #25180f;
+  --muted: #6f614f;
+  --line: #5a4734;
+  --accent: #b44d24;
+  --accent-2: #dc8b4b;
+  --shadow: rgba(46, 32, 20, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(255, 235, 190, 0.6), transparent 26%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+}
+
+.shell {
+  width: min(1320px, calc(100% - 2rem));
+  margin: 1rem auto 2rem;
+}
+
+.hero,
+.panel {
+  border: 3px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 12px 0 var(--shadow);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+  gap: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.hero-card {
+  padding: 1rem;
+  border: 3px solid var(--line);
+  background: #f5e5be;
+}
+
+.eyebrow,
+.panel-label {
+  margin: 0 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p,
+legend {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0.75rem;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin-bottom: 0;
+  text-transform: uppercase;
+}
+
+.summary,
+.hero-card p,
+.export-note,
+.preview-copy p,
+.canvas-note,
+.stats p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) minmax(240px, 280px);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel {
+  padding: 1rem;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.field span,
+.field label,
+legend {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.84rem;
+  letter-spacing: 0.05em;
+}
+
+input[type="text"],
+textarea {
+  width: 100%;
+  border: 2px solid var(--line);
+  background: #fffdf5;
+  color: var(--ink);
+  font: inherit;
+}
+
+input[type="text"] {
+  padding: 0.75rem 0.8rem;
+}
+
+textarea {
+  min-height: 220px;
+  padding: 0.9rem;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+fieldset {
+  padding: 0;
+  margin: 0 0 1rem;
+  border: 0;
+}
+
+.size-options,
+.tool-options {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.size-option,
+.tool-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  border: 2px solid var(--line);
+  background: #f8ebcd;
+  cursor: pointer;
+}
+
+.size-option.recommended {
+  background: #f7ddb4;
+}
+
+.size-option input,
+.tool-chip input {
+  margin: 0;
+}
+
+.palette {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.color-chip {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+  padding: 0.55rem 0.35rem;
+  border: 2px solid var(--line);
+  background: #f8ebcd;
+  cursor: pointer;
+}
+
+.color-chip.active {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.color-chip.transparent {
+  background:
+    linear-gradient(45deg, #e6d7b2 25%, transparent 25%, transparent 75%, #e6d7b2 75%),
+    linear-gradient(45deg, #e6d7b2 25%, transparent 25%, transparent 75%, #e6d7b2 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+  background-color: #fff7e7;
+}
+
+.swatch {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--line);
+}
+
+.swatch.transparent {
+  background:
+    linear-gradient(45deg, #d8c8a1 25%, transparent 25%, transparent 75%, #d8c8a1 75%),
+    linear-gradient(45deg, #d8c8a1 25%, transparent 25%, transparent 75%, #d8c8a1 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+  background-color: #fffdf5;
+}
+
+.chip-label {
+  font-size: 0.74rem;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+button {
+  border: 2px solid var(--line);
+  padding: 0.72rem 0.95rem;
+  background: #f6d39c;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+button:hover {
+  background: #f2c57c;
+}
+
+.stats p {
+  margin: 0;
+}
+
+.canvas-shell {
+  display: grid;
+  place-items: center;
+  min-height: 560px;
+  border: 3px solid var(--line);
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent 60%),
+    linear-gradient(180deg, #e7d1a4 0%, #d4ba85 100%);
+}
+
+#spriteCanvas,
+#previewCanvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#spriteCanvas {
+  border: 3px solid var(--line);
+  background:
+    linear-gradient(45deg, rgba(111, 97, 79, 0.11) 25%, transparent 25%, transparent 75%, rgba(111, 97, 79, 0.11) 75%),
+    linear-gradient(45deg, rgba(111, 97, 79, 0.11) 25%, transparent 25%, transparent 75%, rgba(111, 97, 79, 0.11) 75%);
+  background-position: 0 0, 9px 9px;
+  background-size: 18px 18px;
+  box-shadow: 0 10px 22px rgba(53, 34, 18, 0.22);
+}
+
+.preview-card {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border: 3px solid var(--line);
+  background:
+    linear-gradient(45deg, rgba(120, 99, 71, 0.12) 25%, transparent 25%, transparent 75%, rgba(120, 99, 71, 0.12) 75%),
+    linear-gradient(45deg, rgba(120, 99, 71, 0.12) 25%, transparent 25%, transparent 75%, rgba(120, 99, 71, 0.12) 75%);
+  background-position: 0 0, 10px 10px;
+  background-size: 20px 20px;
+}
+
+#previewCanvas {
+  width: 180px;
+  height: 180px;
+}
+
+.status-line {
+  margin-bottom: 0;
+  padding: 0.75rem 0.9rem;
+  border: 2px solid var(--line);
+  background: #f6e9c8;
+  font-weight: 700;
+}
+
+@media (max-width: 1080px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-shell {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100% - 1rem, 100%);
+    margin: 0.5rem auto 1rem;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-head {
+    flex-direction: column;
+  }
+
+  .palette {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

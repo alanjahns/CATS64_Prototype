@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CATS64 Sprite Workshop</title>
+  <link rel="stylesheet" href="./sprite_workshop.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">CATS64 Tool</p>
+        <h1>Sprite Workshop</h1>
+        <p class="summary">
+          Draw placeholder art for the browser prototype, export it as JSON, and keep the asset
+          pipeline simple enough that we can wire sprites into gameplay quickly.
+        </p>
+      </div>
+      <section class="hero-card">
+        <h2>Recommended Size</h2>
+        <p>
+          <strong>24x24</strong> is the default because it gives us enough room for top-down cats,
+          the player, and readable state markers without getting chunky too fast.
+        </p>
+      </section>
+    </header>
+
+    <section class="workspace">
+      <section class="panel controls-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">Setup</p>
+            <h2>Sprite Controls</h2>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>Sprite Name</span>
+          <input id="spriteName" type="text" value="yard-cat-placeholder" maxlength="48">
+        </label>
+
+        <fieldset class="field">
+          <legend>Canvas Size</legend>
+          <div class="size-options" id="sizeOptions">
+            <label class="size-option">
+              <input type="radio" name="spriteSize" value="16">
+              <span>16x16</span>
+            </label>
+            <label class="size-option recommended">
+              <input type="radio" name="spriteSize" value="24" checked>
+              <span>24x24 (recommended)</span>
+            </label>
+            <label class="size-option">
+              <input type="radio" name="spriteSize" value="32">
+              <span>32x32</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Tool</legend>
+          <div class="tool-options">
+            <label class="tool-chip">
+              <input type="radio" name="drawTool" value="draw" checked>
+              <span>Draw</span>
+            </label>
+            <label class="tool-chip">
+              <input type="radio" name="drawTool" value="erase">
+              <span>Erase</span>
+            </label>
+            <label class="tool-chip">
+              <input type="radio" name="drawTool" value="fill">
+              <span>Flood Fill</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <span>Palette</span>
+          <div class="palette" id="palette"></div>
+        </div>
+
+        <div class="field">
+          <label for="zoomRange">Zoom</label>
+          <input id="zoomRange" type="range" min="10" max="30" value="18">
+        </div>
+
+        <div class="field stats">
+          <p id="spriteMeta">24x24 sprite</p>
+          <p id="paintMeta">0 painted pixels</p>
+        </div>
+
+        <div class="button-row">
+          <button id="clearButton" type="button">Clear Sprite</button>
+          <button id="mirrorButton" type="button">Mirror Horizontally</button>
+        </div>
+      </section>
+
+      <section class="panel canvas-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">Editor</p>
+            <h2>Pixel Grid</h2>
+          </div>
+          <p class="canvas-note">Click or drag to paint. Use flood fill for larger blocks.</p>
+        </div>
+
+        <div class="canvas-shell">
+          <canvas id="spriteCanvas" width="24" height="24" aria-label="Sprite drawing canvas"></canvas>
+        </div>
+      </section>
+
+      <section class="panel preview-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">Preview</p>
+            <h2>Sprite Card</h2>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <canvas id="previewCanvas" width="24" height="24" aria-label="Sprite preview"></canvas>
+        </div>
+
+        <div class="preview-copy">
+          <p>
+            Exported files are meant to live in <code>ASSETS/sprites/</code>. The browser cannot
+            silently write into the repo, so this tool gives you copy and download actions.
+          </p>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel export-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-label">Export</p>
+          <h2>JSON Asset Data</h2>
+        </div>
+        <div class="button-row">
+          <button id="copyButton" type="button">Copy JSON</button>
+          <button id="downloadButton" type="button">Download JSON</button>
+          <button id="loadButton" type="button">Load JSON</button>
+        </div>
+      </div>
+
+      <p class="export-note">
+        This format is designed for the prototype game to consume later without guessing sprite
+        size or palette rules.
+      </p>
+
+      <label class="field">
+        <span>Export / Import Buffer</span>
+        <textarea id="exportBuffer" spellcheck="false"></textarea>
+      </label>
+
+      <p class="status-line" id="statusLine">Workshop ready.</p>
+    </section>
+  </main>
+
+  <script src="./sprite_workshop.js"></script>
+</body>
+</html>

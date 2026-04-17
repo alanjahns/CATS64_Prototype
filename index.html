@@ -106,8 +106,8 @@
               <span>Tree</span>
             </div>
 
-            <div class="marker marker-player" id="playerMarker" aria-label="Future player start">
-              <span>P</span>
+            <div class="marker marker-player" id="playerMarker" aria-label="Player">
+              <canvas class="player-sprite" id="playerSpriteCanvas" width="24" height="24" aria-hidden="true"></canvas>
             </div>
             <div class="marker marker-cat marker-cat-a" id="catA" aria-label="Cat A"><span class="cat-status"></span></div>
             <div class="marker marker-cat marker-cat-b" id="catB" aria-label="Cat B"><span class="cat-status"></span></div>
@@ -183,6 +183,8 @@
   <script>
     const yard = document.getElementById("yard");
     const playerMarker = document.getElementById("playerMarker");
+    const playerSpriteCanvas = document.getElementById("playerSpriteCanvas");
+    const playerSpriteContext = playerSpriteCanvas.getContext("2d");
     const statusText = document.getElementById("statusText");
     const foodMeterFill = document.getElementById("foodMeterFill");
     const foodMeterText = document.getElementById("foodMeterText");
@@ -239,6 +241,10 @@
       { key: "shed", x: 16, y: 19 },
       { key: "tree", x: 19, y: 63 }
     ];
+    const playerSprites = {
+      normal: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Deep Ink","hex":"#25180f"},{"id":2,"name":"Cream","hex":"#f7e6b5"},{"id":3,"name":"Orange Fur","hex":"#d87a38"},{"id":4,"name":"Slate","hex":"#51607a"},{"id":5,"name":"Leaf","hex":"#5c8d43"},{"id":6,"name":"Rose","hex":"#b75f6c"},{"id":7,"name":"Sky","hex":"#68a4cf"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+      tripped: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Deep Ink","hex":"#25180f"},{"id":2,"name":"Cream","hex":"#f7e6b5"},{"id":3,"name":"Orange Fur","hex":"#d87a38"},{"id":4,"name":"Slate","hex":"#51607a"},{"id":5,"name":"Leaf","hex":"#5c8d43"},{"id":6,"name":"Rose","hex":"#b75f6c"},{"id":7,"name":"Sky","hex":"#68a4cf"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,6,6,6,6,6,6,6,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,6,6,6,6,6,6,6,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,6,6,6,6,6,6,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+    };
 
     function chance(probability) {
       return Math.random() < probability;
@@ -343,11 +349,30 @@
       return true;
     }
 
+    function drawSprite(sprite) {
+      const { width, height, pixels, palette } = sprite;
+      playerSpriteCanvas.width = width;
+      playerSpriteCanvas.height = height;
+      playerSpriteContext.clearRect(0, 0, width, height);
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const paletteIndex = pixels[y * width + x];
+          const color = palette[paletteIndex];
+          if (color && color.hex) {
+            playerSpriteContext.fillStyle = color.hex;
+            playerSpriteContext.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+    }
+
     function renderPlayer() {
       playerMarker.style.left = `${playerState.x}%`;
       playerMarker.style.top = `${playerState.y}%`;
       playerMarker.classList.toggle("is-hidden", playerState.hidden);
       playerMarker.classList.toggle("is-tripped", playerState.trippedTimer > 0);
+      drawSprite(playerState.trippedTimer > 0 ? playerSprites.tripped : playerSprites.normal);
     }
 
     function renderCats() {
