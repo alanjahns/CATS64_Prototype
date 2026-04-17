@@ -169,6 +169,12 @@ We should also expect to revisit:
 
 The sprite workshop in the parent `C64` directory is part of the long-term pipeline. We can use it to experiment with cat, player, trap, and yard object sprites as the prototype becomes more concrete.
 
+## Publishing Path
+
+The long-term goal is still a real C64 game, but the practical near-term publishing target is a browser-playable HTML5 version that can be hosted on `itch.io`. That gives us a low-friction way to share the prototype, gather feedback, support donations, and show real project progress in public before the C64 version is ready.
+
+See `ITCH_IO_PLAN.md` for the working publishing and readiness checklist.
+
 ## Immediate Next Steps
 
 - Choose JavaScript or Python for the prototype implementation
