@@ -48,7 +48,7 @@
         </div>
         <div class="controls-card">
           <strong>Status</strong>
-          <p id="statusText">Player can move through the yard and place simple food markers for future cat attraction tests.</p>
+          <p id="statusText">Player can move through the yard, place food, and watch cats react to nearby drops.</p>
         </div>
         <div class="controls-card">
           <strong>Food Supply</strong>
@@ -102,9 +102,9 @@
             <div class="marker marker-player" id="playerMarker" aria-label="Future player start">
               <span>P</span>
             </div>
-            <div class="marker marker-cat marker-cat-a" aria-label="Future cat lane"></div>
-            <div class="marker marker-cat marker-cat-b" aria-label="Future cat lane"></div>
-            <div class="marker marker-cat marker-cat-c" aria-label="Future cat lane"></div>
+            <div class="marker marker-cat marker-cat-a" id="catA" aria-label="Cat A"></div>
+            <div class="marker marker-cat marker-cat-b" id="catB" aria-label="Cat B"></div>
+            <div class="marker marker-cat marker-cat-c" id="catC" aria-label="Cat C"></div>
           </div>
         </div>
       </div>
@@ -169,6 +169,12 @@
     const statusText = document.getElementById("statusText");
     const foodMeterFill = document.getElementById("foodMeterFill");
     const foodMeterText = document.getElementById("foodMeterText");
+    const catStates = [
+      { element: document.getElementById("catA"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null },
+      { element: document.getElementById("catB"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null },
+      { element: document.getElementById("catC"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null }
+    ];
+    const foodDots = [];
     const pressedKeys = new Set();
     const playerState = {
       x: 47,
@@ -181,15 +187,60 @@
       hidden: false
     };
     let lastFrame = performance.now();
+    let nextFoodId = 1;
+    const houseBounds = {
+      left: 31,
+      right: 69,
+      top: 32,
+      bottom: 60
+    };
+    const doorwayBounds = {
+      left: 45.5,
+      right: 56.5,
+      top: 54.5,
+      bottom: 62.5
+    };
 
     function clamp(value, min, max) {
       return Math.min(max, Math.max(min, value));
+    }
+
+    function overlapsRect(x, y, rect, padding = 0) {
+      return (
+        x >= rect.left - padding &&
+        x <= rect.right + padding &&
+        y >= rect.top - padding &&
+        y <= rect.bottom + padding
+      );
+    }
+
+    function inDoorway(x, y) {
+      return overlapsRect(x, y, doorwayBounds, 0);
+    }
+
+    function collidesWithHouse(x, y, allowDoorway = false) {
+      if (!overlapsRect(x, y, houseBounds, 1.8)) {
+        return false;
+      }
+
+      if (allowDoorway && inDoorway(x, y)) {
+        return false;
+      }
+
+      return true;
     }
 
     function renderPlayer() {
       playerMarker.style.left = `${playerState.x}%`;
       playerMarker.style.top = `${playerState.y}%`;
       playerMarker.classList.toggle("is-hidden", playerState.hidden);
+    }
+
+    function renderCats() {
+      for (const cat of catStates) {
+        cat.element.style.left = `${cat.x}%`;
+        cat.element.style.top = `${cat.y}%`;
+      }
     }
 
     function renderFoodMeter() {
@@ -211,13 +262,102 @@
 
       const dot = document.createElement("div");
       dot.className = "food-dot";
-      dot.style.left = `${playerState.x + 1.7}%`;
-      dot.style.top = `${playerState.y + 1.7}%`;
+      const x = clamp(playerState.x + 1.7, 7, 92);
+      const y = clamp(playerState.y + 1.7, 7, 92);
+      dot.style.left = `${x}%`;
+      dot.style.top = `${y}%`;
       dot.title = "Food";
       yard.appendChild(dot);
+      foodDots.push({ id: nextFoodId, x, y, element: dot });
+      nextFoodId += 1;
       playerState.food -= 1;
       renderFoodMeter();
       statusText.textContent = `Food placed at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
+    }
+
+    function distance(ax, ay, bx, by) {
+      return Math.hypot(ax - bx, ay - by);
+    }
+
+    function moveToward(entity, targetX, targetY, amount, allowDoorway = false) {
+      const dx = targetX - entity.x;
+      const dy = targetY - entity.y;
+      const length = Math.hypot(dx, dy) || 1;
+      const nextX = entity.x + (dx / length) * amount;
+      const nextY = entity.y + (dy / length) * amount;
+
+      if (!collidesWithHouse(nextX, nextY, allowDoorway)) {
+        entity.x = nextX;
+        entity.y = nextY;
+      }
+    }
+
+    function pickNearestFood(cat) {
+      let best = null;
+      let bestDistance = Infinity;
+
+      for (const food of foodDots) {
+        const currentDistance = distance(cat.x, cat.y, food.x, food.y);
+        if (currentDistance < bestDistance) {
+          bestDistance = currentDistance;
+          best = food;
+        }
+      }
+
+      return { food: best, distanceToFood: bestDistance };
+    }
+
+    function updateCats(delta) {
+      for (const cat of catStates) {
+        const { food, distanceToFood } = pickNearestFood(cat);
+
+        if (food && distanceToFood < 28) {
+          cat.foodTargetId = food.id;
+
+          if (distanceToFood > 2.1) {
+            moveToward(cat, food.x, food.y, cat.speed * delta, false);
+          } else {
+            cat.wanderTimer = 0;
+            cat.wanderAngle += 0.05 * delta;
+            const nextX = cat.x + Math.cos(cat.wanderAngle) * 0.02 * delta;
+            const nextY = cat.y + Math.sin(cat.wanderAngle) * 0.02 * delta;
+            if (!collidesWithHouse(nextX, nextY, false)) {
+              cat.x = nextX;
+              cat.y = nextY;
+            }
+          }
+        } else {
+          cat.foodTargetId = null;
+          cat.wanderTimer -= delta;
+
+          if (cat.wanderTimer <= 0) {
+            cat.wanderAngle = Math.random() * Math.PI * 2;
+            cat.wanderTimer = 25 + Math.random() * 90;
+          }
+
+          const nextX = cat.x + Math.cos(cat.wanderAngle) * cat.speed * 0.5 * delta;
+          const nextY = cat.y + Math.sin(cat.wanderAngle) * cat.speed * 0.5 * delta;
+
+          if (!collidesWithHouse(nextX, nextY, false)) {
+            cat.x = nextX;
+            cat.y = nextY;
+          } else {
+            cat.wanderAngle += Math.PI / 2;
+          }
+
+          if (cat.x <= 7 || cat.x >= 92) {
+            cat.wanderAngle = Math.PI - cat.wanderAngle;
+          }
+          if (cat.y <= 7 || cat.y >= 92) {
+            cat.wanderAngle = -cat.wanderAngle;
+          }
+        }
+
+        cat.x = clamp(cat.x, 7, 92);
+        cat.y = clamp(cat.y, 7, 92);
+      }
+
+      renderCats();
     }
 
     function nearDoorway() {
@@ -261,25 +401,33 @@
           statusText.textContent = "Food restocked. Player returned to the yard.";
         }
       } else {
+        let nextX = playerState.x;
+        let nextY = playerState.y;
+
         if (pressedKeys.has("arrowup") || pressedKeys.has("w")) {
-          playerState.y -= playerState.speed * delta;
+          nextY -= playerState.speed * delta;
           moved = true;
         }
         if (pressedKeys.has("arrowdown") || pressedKeys.has("s")) {
-          playerState.y += playerState.speed * delta;
+          nextY += playerState.speed * delta;
           moved = true;
         }
         if (pressedKeys.has("arrowleft") || pressedKeys.has("a")) {
-          playerState.x -= playerState.speed * delta;
+          nextX -= playerState.speed * delta;
           moved = true;
         }
         if (pressedKeys.has("arrowright") || pressedKeys.has("d")) {
-          playerState.x += playerState.speed * delta;
+          nextX += playerState.speed * delta;
           moved = true;
         }
 
-        playerState.x = clamp(playerState.x, 6, 91);
-        playerState.y = clamp(playerState.y, 6, 91);
+        nextX = clamp(nextX, 6, 91);
+        nextY = clamp(nextY, 6, 91);
+
+        if (!collidesWithHouse(nextX, nextY, true)) {
+          playerState.x = nextX;
+          playerState.y = nextY;
+        }
 
         if (moved) {
           renderPlayer();
@@ -290,6 +438,8 @@
           }
         }
       }
+
+      updateCats(delta);
 
       requestAnimationFrame(step);
     }
@@ -316,6 +466,7 @@
     });
 
     renderPlayer();
+    renderCats();
     renderFoodMeter();
     requestAnimationFrame(step);
   </script>
