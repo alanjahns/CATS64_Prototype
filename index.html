@@ -59,6 +59,13 @@
             <p id="foodMeterText">Food: 10 / 10</p>
           </div>
         </div>
+        <div class="controls-card">
+          <strong>Trip Counter</strong>
+          <div class="trip-meter">
+            <p id="tripCounterText">Trips: 0 / 3</p>
+            <p id="tripCounterNote">Testing mode: trips are tracked, but game over is disabled for now.</p>
+          </div>
+        </div>
       </section>
 
       <div class="yard-frame">
@@ -169,10 +176,12 @@
     const statusText = document.getElementById("statusText");
     const foodMeterFill = document.getElementById("foodMeterFill");
     const foodMeterText = document.getElementById("foodMeterText");
+    const tripCounterText = document.getElementById("tripCounterText");
+    const tripCounterNote = document.getElementById("tripCounterNote");
     const catStates = [
-      { element: document.getElementById("catA"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null },
-      { element: document.getElementById("catB"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null },
-      { element: document.getElementById("catC"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null }
+      { element: document.getElementById("catA"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true },
+      { element: document.getElementById("catB"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true },
+      { element: document.getElementById("catC"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true }
     ];
     const foodDots = [];
     const pressedKeys = new Set();
@@ -184,10 +193,15 @@
       foodCapacity: 10,
       refilling: false,
       refillProgress: 0,
-      hidden: false
+      hidden: false,
+      tripCount: 0,
+      trippedTimer: 0,
+      tripCooldown: 0
     };
     let lastFrame = performance.now();
     let nextFoodId = 1;
+    let spawnCooldown = 240;
+    const maxCats = 20;
     const houseBounds = {
       left: 31,
       right: 69,
@@ -200,6 +214,36 @@
       top: 54.5,
       bottom: 62.5
     };
+    const spawnPoints = [
+      { x: 50, y: 8 },
+      { x: 50, y: 92 },
+      { x: 92, y: 30 },
+      { x: 8, y: 78 }
+    ];
+
+    function createExtraCats() {
+      const variants = ["marker-cat-a", "marker-cat-b", "marker-cat-c"];
+
+      for (let index = catStates.length; index < maxCats; index += 1) {
+        const element = document.createElement("div");
+        element.className = `marker marker-cat ${variants[index % variants.length]}`;
+        element.setAttribute("aria-label", `Cat ${index + 1}`);
+        yard.appendChild(element);
+
+        catStates.push({
+          element,
+          x: 50,
+          y: 8,
+          speed: 0.09 + (index % 4) * 0.01,
+          wanderAngle: Math.random() * Math.PI * 2,
+          wanderTimer: 0,
+          foodTargetId: null,
+          satisfiedTimer: 0,
+          contactCooldown: 0,
+          active: false
+        });
+      }
+    }
 
     function clamp(value, min, max) {
       return Math.min(max, Math.max(min, value));
@@ -234,10 +278,16 @@
       playerMarker.style.left = `${playerState.x}%`;
       playerMarker.style.top = `${playerState.y}%`;
       playerMarker.classList.toggle("is-hidden", playerState.hidden);
+      playerMarker.classList.toggle("is-tripped", playerState.trippedTimer > 0);
     }
 
     function renderCats() {
       for (const cat of catStates) {
+        cat.element.classList.toggle("is-hidden", !cat.active);
+        cat.element.classList.toggle("is-satisfied", cat.satisfiedTimer > 0);
+        if (!cat.active) {
+          continue;
+        }
         cat.element.style.left = `${cat.x}%`;
         cat.element.style.top = `${cat.y}%`;
       }
@@ -247,6 +297,15 @@
       const percent = (playerState.food / playerState.foodCapacity) * 100;
       foodMeterFill.style.width = `${percent}%`;
       foodMeterText.textContent = `Food: ${playerState.food} / ${playerState.foodCapacity}`;
+    }
+
+    function renderTripCounter() {
+      tripCounterText.textContent = `Trips: ${playerState.tripCount} / 3`;
+      if (playerState.tripCount >= 3) {
+        tripCounterNote.textContent = "Testing mode: 3+ trips reached, but game over is intentionally disabled.";
+      } else {
+        tripCounterNote.textContent = "Testing mode: trips are tracked, but game over is disabled for now.";
+      }
     }
 
     function dropFood() {
@@ -268,11 +327,49 @@
       dot.style.top = `${y}%`;
       dot.title = "Food";
       yard.appendChild(dot);
-      foodDots.push({ id: nextFoodId, x, y, element: dot });
+      foodDots.push({ id: nextFoodId, x, y, element: dot, timer: 1200 });
       nextFoodId += 1;
       playerState.food -= 1;
       renderFoodMeter();
       statusText.textContent = `Food placed at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
+    }
+
+    function satisfyCat(cat, duration = 900) {
+      cat.satisfiedTimer = Math.max(cat.satisfiedTimer, duration);
+      cat.foodTargetId = null;
+      renderCats();
+    }
+
+    function removeFood(foodId) {
+      const foodIndex = foodDots.findIndex((food) => food.id === foodId);
+      if (foodIndex === -1) {
+        return;
+      }
+
+      const [food] = foodDots.splice(foodIndex, 1);
+      food.element.remove();
+
+      for (const cat of catStates) {
+        if (!cat.active) {
+          continue;
+        }
+        if (distance(cat.x, cat.y, food.x, food.y) < 8) {
+          satisfyCat(cat);
+        }
+        if (cat.foodTargetId === foodId) {
+          cat.foodTargetId = null;
+        }
+      }
+    }
+
+    function updateFoods(delta) {
+      for (const food of [...foodDots]) {
+        food.timer -= delta;
+        if (food.timer <= 0) {
+          removeFood(food.id);
+          statusText.textContent = "Food was eaten and some cats are now satisfied.";
+        }
+      }
     }
 
     function distance(ax, ay, bx, by) {
@@ -307,8 +404,80 @@
       return { food: best, distanceToFood: bestDistance };
     }
 
+    function maybeSpawnCat(delta) {
+      const activeCats = catStates.filter((cat) => cat.active).length;
+      const hasSatisfiedCats = catStates.some((cat) => cat.active && cat.satisfiedTimer > 0);
+
+      if (!hasSatisfiedCats || activeCats >= maxCats) {
+        spawnCooldown = 240;
+        return;
+      }
+
+      spawnCooldown -= delta;
+      if (spawnCooldown > 0) {
+        return;
+      }
+
+      const nextCat = catStates.find((cat) => !cat.active);
+      if (!nextCat) {
+        return;
+      }
+
+      const spawnPoint = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+      nextCat.active = true;
+      nextCat.x = spawnPoint.x;
+      nextCat.y = spawnPoint.y;
+      nextCat.wanderAngle = Math.random() * Math.PI * 2;
+      nextCat.wanderTimer = 60;
+      nextCat.foodTargetId = null;
+      nextCat.satisfiedTimer = 0;
+      nextCat.contactCooldown = 0;
+      spawnCooldown = 300;
+      renderCats();
+      statusText.textContent = `Another cat entered the yard. Active cats: ${activeCats + 1}.`;
+    }
+
     function updateCats(delta) {
       for (const cat of catStates) {
+        if (!cat.active) {
+          continue;
+        }
+
+        if (cat.contactCooldown > 0) {
+          cat.contactCooldown -= delta;
+        }
+
+        if (cat.satisfiedTimer > 0) {
+          cat.satisfiedTimer -= delta;
+          if (cat.satisfiedTimer < 0) {
+            cat.satisfiedTimer = 0;
+          }
+        }
+
+        if (cat.satisfiedTimer > 0) {
+          cat.foodTargetId = null;
+          cat.wanderTimer -= delta;
+
+          if (cat.wanderTimer <= 0) {
+            cat.wanderAngle = Math.random() * Math.PI * 2;
+            cat.wanderTimer = 30 + Math.random() * 90;
+          }
+
+          const nextX = cat.x + Math.cos(cat.wanderAngle) * cat.speed * 0.35 * delta;
+          const nextY = cat.y + Math.sin(cat.wanderAngle) * cat.speed * 0.35 * delta;
+
+          if (!collidesWithHouse(nextX, nextY, false)) {
+            cat.x = nextX;
+            cat.y = nextY;
+          } else {
+            cat.wanderAngle += Math.PI / 2;
+          }
+
+          cat.x = clamp(cat.x, 7, 92);
+          cat.y = clamp(cat.y, 7, 92);
+          continue;
+        }
+
         const { food, distanceToFood } = pickNearestFood(cat);
 
         if (food && distanceToFood < 28) {
@@ -324,6 +493,37 @@
             if (!collidesWithHouse(nextX, nextY, false)) {
               cat.x = nextX;
               cat.y = nextY;
+            }
+          }
+        } else if (!playerState.refilling && !playerState.hidden) {
+          cat.foodTargetId = null;
+          const playerDistance = distance(cat.x, cat.y, playerState.x, playerState.y);
+
+          if (playerDistance < 34 && playerDistance > 5.5) {
+            moveToward(cat, playerState.x, playerState.y, cat.speed * 0.55 * delta, false);
+          } else {
+            cat.wanderTimer -= delta;
+
+            if (cat.wanderTimer <= 0) {
+              cat.wanderAngle = Math.random() * Math.PI * 2;
+              cat.wanderTimer = 25 + Math.random() * 90;
+            }
+
+            const nextX = cat.x + Math.cos(cat.wanderAngle) * cat.speed * 0.5 * delta;
+            const nextY = cat.y + Math.sin(cat.wanderAngle) * cat.speed * 0.5 * delta;
+
+            if (!collidesWithHouse(nextX, nextY, false)) {
+              cat.x = nextX;
+              cat.y = nextY;
+            } else {
+              cat.wanderAngle += Math.PI / 2;
+            }
+
+            if (cat.x <= 7 || cat.x >= 92) {
+              cat.wanderAngle = Math.PI - cat.wanderAngle;
+            }
+            if (cat.y <= 7 || cat.y >= 92) {
+              cat.wanderAngle = -cat.wanderAngle;
             }
           }
         } else {
@@ -358,6 +558,36 @@
       }
 
       renderCats();
+    }
+
+    function checkPlayerTrips() {
+      if (playerState.refilling || playerState.hidden || playerState.tripCooldown > 0) {
+        return;
+      }
+
+      for (const cat of catStates) {
+        if (!cat.active || cat.contactCooldown > 0) {
+          continue;
+        }
+
+        const gap = distance(playerState.x, playerState.y, cat.x, cat.y);
+        if (gap < 4.4) {
+          if (cat.satisfiedTimer > 0 && Math.random() > 0.2) {
+            cat.contactCooldown = 120;
+            statusText.textContent = "A satisfied cat came close, but just wanted attention.";
+            break;
+          }
+
+          playerState.tripCount += 1;
+          playerState.trippedTimer = 55;
+          playerState.tripCooldown = 160;
+          cat.contactCooldown = 180;
+          renderTripCounter();
+          renderPlayer();
+          statusText.textContent = `Cat trip! Count is now ${playerState.tripCount}.`;
+          break;
+        }
+      }
     }
 
     function nearDoorway() {
@@ -401,6 +631,17 @@
           statusText.textContent = "Food restocked. Player returned to the yard.";
         }
       } else {
+        if (playerState.tripCooldown > 0) {
+          playerState.tripCooldown -= delta;
+        }
+        if (playerState.trippedTimer > 0) {
+          playerState.trippedTimer -= delta;
+          if (playerState.trippedTimer <= 0) {
+            playerState.trippedTimer = 0;
+            renderPlayer();
+          }
+        }
+
         let nextX = playerState.x;
         let nextY = playerState.y;
 
@@ -440,6 +681,9 @@
       }
 
       updateCats(delta);
+      updateFoods(delta);
+      maybeSpawnCat(delta);
+      checkPlayerTrips();
 
       requestAnimationFrame(step);
     }
@@ -465,9 +709,11 @@
       pressedKeys.delete(event.key.toLowerCase());
     });
 
+    createExtraCats();
     renderPlayer();
     renderCats();
     renderFoodMeter();
+    renderTripCounter();
     requestAnimationFrame(step);
   </script>
 </body>

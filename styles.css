@@ -179,7 +179,7 @@ h1 {
 
 .controls-bar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -220,6 +220,15 @@ h1 {
   height: 100%;
   background: linear-gradient(90deg, #d08b45 0%, #f0c95e 100%);
   transition: width 120ms ease;
+}
+
+.trip-meter {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.trip-meter p {
+  margin: 0;
 }
 
 .yard-grid {
@@ -493,15 +502,31 @@ h1 {
   color: #f7f0de;
   font-weight: 800;
   z-index: 5;
+  transition: transform 100ms ease, background 100ms ease;
 }
 
 .marker-player.is-hidden {
   opacity: 0;
 }
 
+.marker-player.is-tripped {
+  background: #9f4a4a;
+  transform: translate(-50%, -50%) rotate(90deg) scale(1.05);
+}
+
 .marker-cat {
   border: 3px solid var(--line);
   border-radius: 45% 45% 40% 40%;
+}
+
+.marker-cat.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.marker-cat.is-satisfied {
+  filter: saturate(0.45) brightness(1.08);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.45);
 }
 
 .marker-cat::before,
