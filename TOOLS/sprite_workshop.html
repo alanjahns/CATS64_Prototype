@@ -73,6 +73,10 @@
               <input type="radio" name="drawTool" value="fill">
               <span>Flood Fill</span>
             </label>
+            <label class="tool-chip">
+              <input type="radio" name="drawTool" value="stamp">
+              <span>Stamp</span>
+            </label>
           </div>
         </fieldset>
 
@@ -106,6 +110,11 @@
           <p class="canvas-note">Click or drag to paint. Use flood fill for larger blocks.</p>
         </div>
 
+        <div class="button-row canvas-actions">
+          <button id="undoButton" type="button">Undo</button>
+          <button id="redoButton" type="button">Redo</button>
+        </div>
+
         <div class="canvas-shell">
           <canvas id="spriteCanvas" width="24" height="24" aria-label="Sprite drawing canvas"></canvas>
         </div>
@@ -128,6 +137,17 @@
             Exported files are meant to live in <code>ASSETS/sprites/</code>. The browser cannot
             silently write into the repo, so this tool gives you copy and download actions.
           </p>
+        </div>
+
+        <div class="stamp-panel">
+          <div class="stamp-head">
+            <div>
+              <p class="panel-label">PETSCII</p>
+              <h2>Stamp Tray</h2>
+            </div>
+            <p class="stamp-note">Drag onto the grid or click a stamp, then place it on the canvas in `Stamp` mode.</p>
+          </div>
+          <div class="stamp-grid" id="stampGrid"></div>
         </div>
       </section>
     </section>

@@ -1,23 +1,143 @@
 const palette = [
   { id: 0, name: "Transparent", hex: null },
-  { id: 1, name: "Deep Ink", hex: "#25180f" },
-  { id: 2, name: "Cream", hex: "#f7e6b5" },
-  { id: 3, name: "Orange Fur", hex: "#d87a38" },
-  { id: 4, name: "Slate", hex: "#51607a" },
-  { id: 5, name: "Leaf", hex: "#5c8d43" },
-  { id: 6, name: "Rose", hex: "#b75f6c" },
-  { id: 7, name: "Sky", hex: "#68a4cf" }
+  { id: 1, name: "Black", hex: "#000000" },
+  { id: 2, name: "White", hex: "#ffffff" },
+  { id: 3, name: "Red", hex: "#813338" },
+  { id: 4, name: "Cyan", hex: "#75cec8" },
+  { id: 5, name: "Purple", hex: "#8e3c97" },
+  { id: 6, name: "Green", hex: "#56ac4d" },
+  { id: 7, name: "Blue", hex: "#2e2c9b" },
+  { id: 8, name: "Yellow", hex: "#edf171" },
+  { id: 9, name: "Orange", hex: "#8e5029" },
+  { id: 10, name: "Brown", hex: "#553800" },
+  { id: 11, name: "Light Red", hex: "#c46c71" },
+  { id: 12, name: "Dark Gray", hex: "#4a4a4a" },
+  { id: 13, name: "Gray", hex: "#7b7b7b" },
+  { id: 14, name: "Light Green", hex: "#a9ff9f" },
+  { id: 15, name: "Light Blue", hex: "#706deb" },
+  { id: 16, name: "Light Gray", hex: "#b2b2b2" },
+  { id: 17, name: "Cream", hex: "#f7e6b5" },
+  { id: 18, name: "Warm Sand", hex: "#d7b98c" },
+  { id: 19, name: "Tan Fur", hex: "#b88a5a" },
+  { id: 20, name: "Dark Fur", hex: "#5a4332" },
+  { id: 21, name: "Orange Fur", hex: "#d87a38" },
+  { id: 22, name: "Gold", hex: "#f0c95e" },
+  { id: 23, name: "Pink Nose", hex: "#e39aa5" },
+  { id: 24, name: "Rose", hex: "#b75f6c" },
+  { id: 25, name: "Slate", hex: "#51607a" },
+  { id: 26, name: "Denim", hex: "#3d5a98" },
+  { id: 27, name: "Leaf", hex: "#5c8d43" },
+  { id: 28, name: "Grass", hex: "#84a94f" },
+  { id: 29, name: "Mint", hex: "#9fd6b2" },
+  { id: 30, name: "Sky", hex: "#68a4cf" },
+  { id: 31, name: "Lavender", hex: "#a58cc7" },
+  { id: 32, name: "Sunset", hex: "#e38a6a" }
+];
+
+const stampDefinitions = [
+  { id: "full", label: "Full", mask: (x, y, size) => true },
+  { id: "top", label: "Top Half", mask: (x, y, size) => y < Math.ceil(size / 2) },
+  { id: "bottom", label: "Bottom Half", mask: (x, y, size) => y >= Math.floor(size / 2) },
+  { id: "left", label: "Left Half", mask: (x, y, size) => x < Math.ceil(size / 2) },
+  { id: "right", label: "Right Half", mask: (x, y, size) => x >= Math.floor(size / 2) },
+  { id: "quad-tl", label: "Top Left", mask: (x, y, size) => x < Math.ceil(size / 2) && y < Math.ceil(size / 2) },
+  { id: "quad-tr", label: "Top Right", mask: (x, y, size) => x >= Math.floor(size / 2) && y < Math.ceil(size / 2) },
+  { id: "quad-bl", label: "Bottom Left", mask: (x, y, size) => x < Math.ceil(size / 2) && y >= Math.floor(size / 2) },
+  { id: "quad-br", label: "Bottom Right", mask: (x, y, size) => x >= Math.floor(size / 2) && y >= Math.floor(size / 2) },
+  { id: "frame", label: "Frame", mask: (x, y, size) => x === 0 || y === 0 || x === size - 1 || y === size - 1 },
+  { id: "h-line", label: "H Line", mask: (x, y, size) => Math.abs(y - Math.floor(size / 2)) <= Math.max(0, Math.floor(size / 10)) },
+  { id: "v-line", label: "V Line", mask: (x, y, size) => Math.abs(x - Math.floor(size / 2)) <= Math.max(0, Math.floor(size / 10)) },
+  { id: "cross", label: "Cross", mask: (x, y, size) => Math.abs(y - Math.floor(size / 2)) <= Math.max(0, Math.floor(size / 10)) || Math.abs(x - Math.floor(size / 2)) <= Math.max(0, Math.floor(size / 10)) },
+  { id: "diag-fwd", label: "Diag /", mask: (x, y, size) => Math.abs((size - 1 - x) - y) <= Math.max(0, Math.floor(size / 10)) },
+  { id: "diag-back", label: "Diag \\", mask: (x, y, size) => Math.abs(x - y) <= Math.max(0, Math.floor(size / 10)) },
+  { id: "checker", label: "Checker", mask: (x, y) => (x + y) % 2 === 0 },
+  { id: "diamond", label: "Diamond", mask: (x, y, size) => Math.abs(x - Math.floor(size / 2)) + Math.abs(y - Math.floor(size / 2)) <= Math.floor(size / 2) },
+  { id: "corner-tl", label: "Corner TL", mask: (x, y, size) => x < Math.ceil(size / 3) || y < Math.ceil(size / 3) },
+  { id: "corner-tr", label: "Corner TR", mask: (x, y, size) => x >= size - Math.ceil(size / 3) || y < Math.ceil(size / 3) },
+  { id: "corner-bl", label: "Corner BL", mask: (x, y, size) => x < Math.ceil(size / 3) || y >= size - Math.ceil(size / 3) },
+  { id: "corner-br", label: "Corner BR", mask: (x, y, size) => x >= size - Math.ceil(size / 3) || y >= size - Math.ceil(size / 3) },
+  { id: "round-tl", label: "Round TL", mask: (x, y, size) => {
+    const radius = Math.max(2, Math.floor(size * 0.48));
+    const cutX = radius - 1;
+    const cutY = radius - 1;
+    if (x >= cutX || y >= cutY) {
+      return true;
+    }
+    return ((x - cutX) ** 2 + (y - cutY) ** 2) <= radius ** 2;
+  } },
+  { id: "round-tr", label: "Round TR", mask: (x, y, size) => {
+    const radius = Math.max(2, Math.floor(size * 0.48));
+    const cutX = size - radius;
+    const cutY = radius - 1;
+    if (x < cutX || y >= cutY) {
+      return true;
+    }
+    return ((x - cutX) ** 2 + (y - cutY) ** 2) <= radius ** 2;
+  } },
+  { id: "round-bl", label: "Round BL", mask: (x, y, size) => {
+    const radius = Math.max(2, Math.floor(size * 0.48));
+    const cutX = radius - 1;
+    const cutY = size - radius;
+    if (x >= cutX || y < cutY) {
+      return true;
+    }
+    return ((x - cutX) ** 2 + (y - cutY) ** 2) <= radius ** 2;
+  } },
+  { id: "round-br", label: "Round BR", mask: (x, y, size) => {
+    const radius = Math.max(2, Math.floor(size * 0.48));
+    const cutX = size - radius;
+    const cutY = size - radius;
+    if (x < cutX || y < cutY) {
+      return true;
+    }
+    return ((x - cutX) ** 2 + (y - cutY) ** 2) <= radius ** 2;
+  } },
+  { id: "pill-h", label: "Pill H", mask: (x, y, size) => {
+    const radius = Math.max(2, Math.floor(size * 0.24));
+    const centerY = Math.floor(size / 2);
+    const leftCenter = radius;
+    const rightCenter = size - radius - 1;
+    const inBody = x >= leftCenter && x <= rightCenter && Math.abs(y - centerY) <= radius;
+    const inLeftCap = ((x - leftCenter) ** 2 + (y - centerY) ** 2) <= radius ** 2;
+    const inRightCap = ((x - rightCenter) ** 2 + (y - centerY) ** 2) <= radius ** 2;
+    return inBody || inLeftCap || inRightCap;
+  } },
+  { id: "pill-v", label: "Pill V", mask: (x, y, size) => {
+    const radius = Math.max(2, Math.floor(size * 0.24));
+    const centerX = Math.floor(size / 2);
+    const topCenter = radius;
+    const bottomCenter = size - radius - 1;
+    const inBody = y >= topCenter && y <= bottomCenter && Math.abs(x - centerX) <= radius;
+    const inTopCap = ((x - centerX) ** 2 + (y - topCenter) ** 2) <= radius ** 2;
+    const inBottomCap = ((x - centerX) ** 2 + (y - bottomCenter) ** 2) <= radius ** 2;
+    return inBody || inTopCap || inBottomCap;
+  } },
+  { id: "round-frame", label: "Round Frame", mask: (x, y, size) => {
+    const center = (size - 1) / 2;
+    const radius = center;
+    const inner = Math.max(0, radius - Math.max(1, Math.floor(size / 5)));
+    const dist = Math.hypot(x - center, y - center);
+    return dist <= radius && dist >= inner;
+  } },
+  { id: "disc", label: "Disc", mask: (x, y, size) => {
+    const center = (size - 1) / 2;
+    const radius = size * 0.38;
+    return Math.hypot(x - center, y - center) <= radius;
+  } }
 ];
 
 const spriteNameInput = document.getElementById("spriteName");
 const sizeInputs = [...document.querySelectorAll('input[name="spriteSize"]')];
 const toolInputs = [...document.querySelectorAll('input[name="drawTool"]')];
 const paletteContainer = document.getElementById("palette");
+const stampGrid = document.getElementById("stampGrid");
 const zoomRange = document.getElementById("zoomRange");
 const spriteMeta = document.getElementById("spriteMeta");
 const paintMeta = document.getElementById("paintMeta");
 const clearButton = document.getElementById("clearButton");
 const mirrorButton = document.getElementById("mirrorButton");
+const undoButton = document.getElementById("undoButton");
+const redoButton = document.getElementById("redoButton");
 const copyButton = document.getElementById("copyButton");
 const downloadButton = document.getElementById("downloadButton");
 const loadButton = document.getElementById("loadButton");
@@ -32,8 +152,11 @@ const state = {
   size: 24,
   selectedColor: 1,
   selectedTool: "draw",
+  selectedStamp: "full",
   pixels: [],
-  pointerDown: false
+  pointerDown: false,
+  history: [],
+  future: []
 };
 
 function makePixels(size, fillValue = 0) {
@@ -51,6 +174,24 @@ function currentExportName() {
 
 function updateStatus(message) {
   statusLine.textContent = message;
+}
+
+function snapshotPixels() {
+  return [...state.pixels];
+}
+
+function pushHistory() {
+  state.history.push(snapshotPixels());
+  if (state.history.length > 80) {
+    state.history.shift();
+  }
+  state.future = [];
+  updateHistoryButtons();
+}
+
+function updateHistoryButtons() {
+  undoButton.disabled = state.history.length === 0;
+  redoButton.disabled = state.future.length === 0;
 }
 
 function updateCanvasSize() {
@@ -90,10 +231,71 @@ function renderPalette() {
     chip.addEventListener("click", () => {
       state.selectedColor = color.id;
       renderPalette();
+      renderStampTray();
       updateStatus(`Selected ${color.name}.`);
     });
 
     paletteContainer.append(chip);
+  });
+}
+
+function getSelectedStampDefinition() {
+  return stampDefinitions.find((stamp) => stamp.id === state.selectedStamp) || stampDefinitions[0];
+}
+
+function renderStampPreview(canvas, definition) {
+  const context = canvas.getContext("2d");
+  const size = 16;
+  canvas.width = size;
+  canvas.height = size;
+  context.clearRect(0, 0, size, size);
+
+  const color = palette[state.selectedColor];
+  if (!color || !color.hex) {
+    return;
+  }
+
+  context.fillStyle = color.hex;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      if (definition.mask(x, y, size)) {
+        context.fillRect(x, y, 1, 1);
+      }
+    }
+  }
+}
+
+function renderStampTray() {
+  stampGrid.innerHTML = "";
+
+  stampDefinitions.forEach((definition) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `stamp-chip${definition.id === state.selectedStamp ? " active" : ""}`;
+    button.draggable = true;
+    button.dataset.stampId = definition.id;
+
+    const canvas = document.createElement("canvas");
+    renderStampPreview(canvas, definition);
+
+    const label = document.createElement("span");
+    label.className = "stamp-label";
+    label.textContent = definition.label;
+
+    button.append(canvas, label);
+    button.addEventListener("click", () => {
+      state.selectedStamp = definition.id;
+      renderStampTray();
+      updateStatus(`Selected PETSCII-style stamp: ${definition.label}.`);
+    });
+    button.addEventListener("dragstart", (event) => {
+      state.selectedStamp = definition.id;
+      renderStampTray();
+      event.dataTransfer.setData("text/plain", definition.id);
+      event.dataTransfer.effectAllowed = "copy";
+    });
+
+    stampGrid.append(button);
   });
 }
 
@@ -130,6 +332,7 @@ function renderCanvas() {
   spriteMeta.textContent = `${state.size}x${state.size} sprite`;
   paintMeta.textContent = `${countPaintedPixels()} painted pixels`;
   exportBuffer.value = JSON.stringify(buildSpriteDocument(), null, 2);
+  updateHistoryButtons();
 }
 
 function buildSpriteDocument() {
@@ -152,6 +355,8 @@ function setSize(nextSize) {
   const size = Number(nextSize);
   state.size = size;
   state.pixels = makePixels(size);
+  state.history = [];
+  state.future = [];
   updateCanvasSize();
   renderCanvas();
   updateStatus(`Started a fresh ${size}x${size} sprite.`);
@@ -197,10 +402,55 @@ function fillFrom(x, y, targetColor, nextColor) {
   }
 }
 
+function applyStampAt(centerX, centerY) {
+  const definition = getSelectedStampDefinition();
+  const stampSize = Math.max(4, Math.floor(state.size / 3));
+  const startX = centerX - Math.floor(stampSize / 2);
+  const startY = centerY - Math.floor(stampSize / 2);
+
+  for (let y = 0; y < stampSize; y += 1) {
+    for (let x = 0; x < stampSize; x += 1) {
+      if (!definition.mask(x, y, stampSize)) {
+        continue;
+      }
+      const spriteX = startX + x;
+      const spriteY = startY + y;
+      if (spriteX < 0 || spriteX >= state.size || spriteY < 0 || spriteY >= state.size) {
+        continue;
+      }
+      state.pixels[indexFor(spriteX, spriteY)] = state.selectedColor;
+    }
+  }
+
+  renderCanvas();
+}
+
+function undoAction() {
+  if (state.history.length === 0) {
+    return;
+  }
+  state.future.push(snapshotPixels());
+  state.pixels = state.history.pop();
+  renderCanvas();
+  updateStatus("Undid the last change.");
+}
+
+function redoAction() {
+  if (state.future.length === 0) {
+    return;
+  }
+  state.history.push(snapshotPixels());
+  state.pixels = state.future.pop();
+  renderCanvas();
+  updateStatus("Redid the last change.");
+}
+
 function paintAt(x, y) {
   const index = indexFor(x, y);
 
-  if (state.selectedTool === "fill") {
+  if (state.selectedTool === "stamp") {
+    applyStampAt(x, y);
+  } else if (state.selectedTool === "fill") {
     fillFrom(x, y, state.pixels[index], state.selectedColor);
   } else if (state.selectedTool === "erase") {
     state.pixels[index] = 0;
@@ -263,6 +513,7 @@ function loadJson() {
       throw new Error("Pixel data length does not match sprite size.");
     }
 
+    pushHistory();
     state.size = parsed.width;
     state.pixels = parsed.pixels.map((value) => (Number.isInteger(value) && value >= 0 && value < palette.length ? value : 0));
     spriteNameInput.value = typeof parsed.name === "string" && parsed.name.trim() ? parsed.name.trim() : "loaded-sprite";
@@ -271,6 +522,7 @@ function loadJson() {
     });
     updateCanvasSize();
     renderCanvas();
+    renderStampTray();
     updateStatus(`Loaded ${state.size}x${state.size} sprite from JSON.`);
   } catch (error) {
     updateStatus(error.message || "Could not load sprite JSON.");
@@ -278,6 +530,7 @@ function loadJson() {
 }
 
 spriteCanvas.addEventListener("pointerdown", (event) => {
+  pushHistory();
   state.pointerDown = true;
   spriteCanvas.setPointerCapture(event.pointerId);
   const point = getPointFromEvent(event);
@@ -285,7 +538,7 @@ spriteCanvas.addEventListener("pointerdown", (event) => {
 });
 
 spriteCanvas.addEventListener("pointermove", (event) => {
-  if (!state.pointerDown || state.selectedTool === "fill") {
+  if (!state.pointerDown || state.selectedTool === "fill" || state.selectedTool === "stamp") {
     return;
   }
   const point = getPointFromEvent(event);
@@ -300,6 +553,28 @@ spriteCanvas.addEventListener("pointerleave", () => {
   state.pointerDown = false;
 });
 
+spriteCanvas.addEventListener("dragover", (event) => {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+});
+
+spriteCanvas.addEventListener("drop", (event) => {
+  event.preventDefault();
+  const stampId = event.dataTransfer.getData("text/plain");
+  if (stampDefinitions.some((stamp) => stamp.id === stampId)) {
+    state.selectedStamp = stampId;
+    state.selectedTool = "stamp";
+    toolInputs.forEach((input) => {
+      input.checked = input.value === "stamp";
+    });
+    renderStampTray();
+  }
+  const point = getPointFromEvent(event);
+  pushHistory();
+  applyStampAt(point.x, point.y);
+  updateStatus(`Dropped ${getSelectedStampDefinition().label} stamp onto the canvas.`);
+});
+
 sizeInputs.forEach((input) => {
   input.addEventListener("change", () => {
     if (input.checked) {
@@ -312,7 +587,7 @@ toolInputs.forEach((input) => {
   input.addEventListener("change", () => {
     if (input.checked) {
       state.selectedTool = input.value;
-      updateStatus(`Tool set to ${input.value}.`);
+      updateStatus(input.value === "stamp" ? `Tool set to stamp mode with ${getSelectedStampDefinition().label}.` : `Tool set to ${input.value}.`);
     }
   });
 });
@@ -327,15 +602,24 @@ spriteNameInput.addEventListener("input", () => {
 });
 
 clearButton.addEventListener("click", () => {
+  pushHistory();
   state.pixels = makePixels(state.size);
   renderCanvas();
   updateStatus("Cleared the sprite.");
 });
 
-mirrorButton.addEventListener("click", mirrorSprite);
+mirrorButton.addEventListener("click", () => {
+  pushHistory();
+  mirrorSprite();
+});
+undoButton.addEventListener("click", undoAction);
+redoButton.addEventListener("click", redoAction);
+undoButton.disabled = true;
+redoButton.disabled = true;
 copyButton.addEventListener("click", copyJson);
 downloadButton.addEventListener("click", downloadJson);
 loadButton.addEventListener("click", loadJson);
 
 setSize(24);
 renderPalette();
+renderStampTray();

@@ -520,12 +520,21 @@ h1 {
 }
 
 .marker-cat {
-  border: 3px solid var(--line);
-  border-radius: 45% 45% 40% 40%;
+  width: 5.8%;
+  z-index: 4;
 }
 
 .cat-status {
   display: none;
+}
+
+.cat-sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(2px 3px 0 rgba(29, 24, 18, 0.2));
 }
 
 .marker-cat.is-hidden {
@@ -559,43 +568,19 @@ h1 {
   transform: translate(-50%, -50%) rotate(-22deg) scale(1.05);
 }
 
-.marker-cat::before,
-.marker-cat::after {
-  content: "";
-  position: absolute;
-  top: -18%;
-  width: 24%;
-  height: 24%;
-  background: inherit;
-  border: 3px solid var(--line);
-  border-bottom: 0;
-  transform: rotate(45deg);
-}
-
-.marker-cat::before {
-  left: 12%;
-}
-
-.marker-cat::after {
-  right: 12%;
-}
-
 .marker-cat-a {
   left: 22%;
   top: 37%;
-  background: var(--cat);
 }
 
 .marker-cat-b {
   left: 26%;
   top: 47%;
-  background: var(--cat-2);
 }
 
 .marker-cat-c {
   left: 72%;
   top: 38%;
-  background: var(--cat-3);
 }
 
 .food-dot {

@@ -109,9 +109,9 @@
             <div class="marker marker-player" id="playerMarker" aria-label="Player">
               <canvas class="player-sprite" id="playerSpriteCanvas" width="24" height="24" aria-hidden="true"></canvas>
             </div>
-            <div class="marker marker-cat marker-cat-a" id="catA" aria-label="Cat A"><span class="cat-status"></span></div>
-            <div class="marker marker-cat marker-cat-b" id="catB" aria-label="Cat B"><span class="cat-status"></span></div>
-            <div class="marker marker-cat marker-cat-c" id="catC" aria-label="Cat C"><span class="cat-status"></span></div>
+            <div class="marker marker-cat" id="catA" aria-label="Cat A"><canvas class="cat-sprite" width="24" height="24" aria-hidden="true"></canvas><span class="cat-status"></span></div>
+            <div class="marker marker-cat" id="catB" aria-label="Cat B"><canvas class="cat-sprite" width="24" height="24" aria-hidden="true"></canvas><span class="cat-status"></span></div>
+            <div class="marker marker-cat" id="catC" aria-label="Cat C"><canvas class="cat-sprite" width="24" height="24" aria-hidden="true"></canvas><span class="cat-status"></span></div>
             <div class="spray-mark spray-tree" id="sprayTree"></div>
             <div class="spray-mark spray-shed" id="sprayShed"></div>
           </div>
@@ -180,6 +180,7 @@
       </section>
     </section>
   </main>
+  <script src="./sprite_assets.js"></script>
   <script>
     const yard = document.getElementById("yard");
     const playerMarker = document.getElementById("playerMarker");
@@ -195,9 +196,9 @@
       shed: document.getElementById("sprayShed")
     };
     const catStates = [
-      { element: document.getElementById("catA"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "male", sprayingTimer: 0, sprayCooldown: 420 },
-      { element: document.getElementById("catB"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: true, sex: "female", sprayingTimer: 0, sprayCooldown: 420 },
-      { element: document.getElementById("catC"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "female", sprayingTimer: 0, sprayCooldown: 420 }
+      { element: document.getElementById("catA"), canvas: document.querySelector("#catA .cat-sprite"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "male", sprayingTimer: 0, sprayCooldown: 420, variant: "orange" },
+      { element: document.getElementById("catB"), canvas: document.querySelector("#catB .cat-sprite"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: true, sex: "female", sprayingTimer: 0, sprayCooldown: 420, variant: "tan" },
+      { element: document.getElementById("catC"), canvas: document.querySelector("#catC .cat-sprite"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "female", sprayingTimer: 0, sprayCooldown: 420, variant: "dark" }
     ];
     const foodDots = [];
     const pressedKeys = new Set();
@@ -214,6 +215,7 @@
       trippedTimer: 0,
       tripCooldown: 0
     };
+    let isPaused = false;
     let lastFrame = performance.now();
     let nextFoodId = 1;
     let spawnCooldown = 240;
@@ -241,10 +243,24 @@
       { key: "shed", x: 16, y: 19 },
       { key: "tree", x: 19, y: 63 }
     ];
+    const catSpritePalette = window.CATS64SpriteAssets.catPalette;
+    const catSpritePixels = window.CATS64SpriteAssets.catPixels;
     const playerSprites = {
       normal: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Deep Ink","hex":"#25180f"},{"id":2,"name":"Cream","hex":"#f7e6b5"},{"id":3,"name":"Orange Fur","hex":"#d87a38"},{"id":4,"name":"Slate","hex":"#51607a"},{"id":5,"name":"Leaf","hex":"#5c8d43"},{"id":6,"name":"Rose","hex":"#b75f6c"},{"id":7,"name":"Sky","hex":"#68a4cf"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
       tripped: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Deep Ink","hex":"#25180f"},{"id":2,"name":"Cream","hex":"#f7e6b5"},{"id":3,"name":"Orange Fur","hex":"#d87a38"},{"id":4,"name":"Slate","hex":"#51607a"},{"id":5,"name":"Leaf","hex":"#5c8d43"},{"id":6,"name":"Rose","hex":"#b75f6c"},{"id":7,"name":"Sky","hex":"#68a4cf"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,6,6,6,6,6,6,6,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,6,6,6,6,6,6,6,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,6,6,6,6,6,6,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
     };
+
+    function getCatSprite(variant) {
+      return {
+        type: "cats64-sprite",
+        version: 1,
+        name: `cat-${variant}`,
+        width: 24,
+        height: 24,
+        palette: catSpritePalette,
+        pixels: catSpritePixels[variant] || catSpritePixels.orange
+      };
+    }
 
     function chance(probability) {
       return Math.random() < probability;
@@ -292,17 +308,18 @@
     }
 
     function createExtraCats() {
-      const variants = ["marker-cat-a", "marker-cat-b", "marker-cat-c"];
+      const variants = ["orange", "tan", "dark"];
 
       for (let index = catStates.length; index < maxCats; index += 1) {
         const element = document.createElement("div");
-        element.className = `marker marker-cat ${variants[index % variants.length]}`;
+        element.className = "marker marker-cat";
         element.setAttribute("aria-label", `Cat ${index + 1}`);
-        element.innerHTML = '<span class="cat-status"></span>';
+        element.innerHTML = '<canvas class="cat-sprite" width="24" height="24" aria-hidden="true"></canvas><span class="cat-status"></span>';
         yard.appendChild(element);
 
         catStates.push({
           element,
+          canvas: element.querySelector(".cat-sprite"),
           x: 50,
           y: 8,
           speed: 0.09 + (index % 4) * 0.01,
@@ -315,7 +332,8 @@
           altered: pickAlteredState(),
           sex: pickSex(),
           sprayingTimer: 0,
-          sprayCooldown: 420 + Math.random() * 240
+          sprayCooldown: 420 + Math.random() * 240,
+          variant: variants[index % variants.length]
         });
       }
     }
@@ -349,19 +367,19 @@
       return true;
     }
 
-    function drawSprite(sprite) {
+    function drawSpriteToCanvas(canvas, context, sprite) {
       const { width, height, pixels, palette } = sprite;
-      playerSpriteCanvas.width = width;
-      playerSpriteCanvas.height = height;
-      playerSpriteContext.clearRect(0, 0, width, height);
+      canvas.width = width;
+      canvas.height = height;
+      context.clearRect(0, 0, width, height);
 
       for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
           const paletteIndex = pixels[y * width + x];
           const color = palette[paletteIndex];
           if (color && color.hex) {
-            playerSpriteContext.fillStyle = color.hex;
-            playerSpriteContext.fillRect(x, y, 1, 1);
+            context.fillStyle = color.hex;
+            context.fillRect(x, y, 1, 1);
           }
         }
       }
@@ -372,7 +390,7 @@
       playerMarker.style.top = `${playerState.y}%`;
       playerMarker.classList.toggle("is-hidden", playerState.hidden);
       playerMarker.classList.toggle("is-tripped", playerState.trippedTimer > 0);
-      drawSprite(playerState.trippedTimer > 0 ? playerSprites.tripped : playerSprites.normal);
+      drawSpriteToCanvas(playerSpriteCanvas, playerSpriteContext, playerState.trippedTimer > 0 ? playerSprites.tripped : playerSprites.normal);
     }
 
     function renderCats() {
@@ -387,6 +405,8 @@
         }
         cat.element.style.left = `${cat.x}%`;
         cat.element.style.top = `${cat.y}%`;
+        const sprite = getCatSprite(cat.variant);
+        drawSpriteToCanvas(cat.canvas, cat.canvas.getContext("2d"), sprite);
       }
     }
 
@@ -750,9 +770,23 @@
       renderPlayer();
     }
 
+    function togglePause() {
+      isPaused = !isPaused;
+      pressedKeys.clear();
+      statusText.textContent = isPaused
+        ? "Paused. Press P to resume."
+        : "Resumed. Press Space to drop food or keep moving.";
+    }
+
     function step(now) {
       const delta = Math.min((now - lastFrame) / 16.67, 2);
       lastFrame = now;
+
+      if (isPaused) {
+        requestAnimationFrame(step);
+        return;
+      }
+
       let moved = false;
 
       if (playerState.refilling) {
@@ -835,11 +869,19 @@
     document.addEventListener("keydown", (event) => {
       const key = event.key.toLowerCase();
 
-      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " "].includes(key)) {
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " ", "p"].includes(key)) {
         event.preventDefault();
       }
 
+      if (key === "p" && !event.repeat) {
+        togglePause();
+        return;
+      }
+
       if (key === " ") {
+        if (isPaused) {
+          return;
+        }
         if (!event.repeat) {
           dropFood();
         }

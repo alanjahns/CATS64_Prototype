@@ -177,7 +177,7 @@ fieldset {
 
 .palette {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.55rem;
 }
 
@@ -232,6 +232,10 @@ fieldset {
   gap: 0.65rem;
 }
 
+.canvas-actions {
+  margin-bottom: 0.85rem;
+}
+
 button {
   border: 2px solid var(--line);
   padding: 0.72rem 0.95rem;
@@ -245,6 +249,12 @@ button {
 
 button:hover {
   background: #f2c57c;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #e7d2ac;
 }
 
 .stats p {
@@ -294,6 +304,67 @@ button:hover {
   height: 180px;
 }
 
+.stamp-panel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 3px solid rgba(90, 71, 52, 0.22);
+}
+
+.stamp-head {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.stamp-note {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.35;
+  font-size: 0.9rem;
+}
+
+.stamp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.stamp-chip {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.35rem;
+  border: 2px solid var(--line);
+  background: #f8ebcd;
+  cursor: grab;
+}
+
+.stamp-chip.active {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  background: #f7ddb4;
+}
+
+.stamp-chip canvas {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 2px solid var(--line);
+  background:
+    linear-gradient(45deg, rgba(120, 99, 71, 0.12) 25%, transparent 25%, transparent 75%, rgba(120, 99, 71, 0.12) 75%),
+    linear-gradient(45deg, rgba(120, 99, 71, 0.12) 25%, transparent 25%, transparent 75%, rgba(120, 99, 71, 0.12) 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+}
+
+.stamp-label {
+  font-size: 0.72rem;
+  text-align: center;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
 .status-line {
   margin-bottom: 0;
   padding: 0.75rem 0.9rem;
@@ -309,6 +380,14 @@ button:hover {
 
   .canvas-shell {
     min-height: 420px;
+  }
+
+  .palette {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .stamp-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -327,6 +406,10 @@ button:hover {
   }
 
   .palette {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .stamp-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
