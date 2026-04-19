@@ -5,9 +5,9 @@
 3. DONE - Add cat movement with placeholder graphics and multiple visible cat instances.
 4. DONE - Implement collision and movement boundaries for the player, cats, and yard obstacles.
 5. DONE - Add food placement by the player.
-6. IN PROGRESS 7/10 - Clarify the exact food placement dynamic, including how the fire button should place and manage food from the house.
+6. IN PROGRESS 8/10 - Clarify the exact food placement dynamic, including how placed food ages, dries out, spoils, and is consumed by cats after being carried out from the house.
 7. DONE - Make cats detect nearby food and move toward it.
-8. IN PROGRESS 7/10 - Make cats gather around food in readable groups.
+8. IN PROGRESS 8/10 - Make cats gather around food in readable groups and visibly eat placed food before it disappears.
 9. IN PROGRESS 4/10 - Prototype crowding pressure so groups of cats can obstruct movement or create hazards.
 10. TODO - Add a feeder trip or spilled food chaos event.
 11. IN PROGRESS 4/10 - Differentiate friendly cats and feral cats with at least one gameplay-relevant behavior difference.

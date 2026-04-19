@@ -76,7 +76,28 @@
             <div class="zone zone-shadow"></div>
             <div class="zone zone-driveway"></div>
 
-            <div class="fence fence-top"></div>
+            <div class="fence fence-top">
+              <div class="fence-hud" aria-label="Score and lives">
+                <span class="fence-hud-posts fence-hud-posts-left" aria-hidden="true"></span>
+                <span class="fence-hud-score" id="scoreText">000000</span>
+                <span class="fence-hud-posts fence-hud-posts-center" aria-hidden="true"></span>
+                <span class="fence-hud-food" id="foodHud" aria-label="Food supply">
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                  <span class="food-dot-hud is-filled"></span>
+                </span>
+                <span class="fence-hud-posts fence-hud-posts-center-2" aria-hidden="true"></span>
+                <span class="fence-hud-lives" id="livesText">3/3</span>
+                <span class="fence-hud-posts fence-hud-posts-right" aria-hidden="true"></span>
+              </div>
+            </div>
             <div class="fence fence-right"></div>
             <div class="fence fence-bottom"></div>
             <div class="fence fence-left"></div>
@@ -189,6 +210,9 @@
     const statusText = document.getElementById("statusText");
     const foodMeterFill = document.getElementById("foodMeterFill");
     const foodMeterText = document.getElementById("foodMeterText");
+    const scoreText = document.getElementById("scoreText");
+    const foodHud = document.getElementById("foodHud");
+    const livesText = document.getElementById("livesText");
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
     const sprayMarks = {
@@ -215,6 +239,16 @@
       trippedTimer: 0,
       tripCooldown: 0
     };
+    const scoring = {
+      catFed: 10,
+      catFixed: 50
+    };
+    const foodAging = {
+      freshToDry: 1200,
+      dryToSpoiled: 1800,
+      spoiledToGone: 5400
+    };
+    let score = 0;
     let isPaused = false;
     let lastFrame = performance.now();
     let nextFoodId = 1;
@@ -414,15 +448,30 @@
       const percent = (playerState.food / playerState.foodCapacity) * 100;
       foodMeterFill.style.width = `${percent}%`;
       foodMeterText.textContent = `Food: ${playerState.food} / ${playerState.foodCapacity}`;
+      const hudDots = [...foodHud.querySelectorAll(".food-dot-hud")];
+      hudDots.forEach((dot, index) => {
+        dot.classList.toggle("is-filled", index < playerState.food);
+      });
     }
 
     function renderTripCounter() {
       tripCounterText.textContent = `Trips: ${playerState.tripCount} / 3`;
+      const livesLeft = Math.max(0, 3 - playerState.tripCount);
+      livesText.textContent = `${livesLeft}/3`;
       if (playerState.tripCount >= 3) {
         tripCounterNote.textContent = "Testing mode: 3+ trips reached, but game over is intentionally disabled.";
       } else {
         tripCounterNote.textContent = "Testing mode: trips are tracked, but game over is disabled for now.";
       }
+    }
+
+    function renderScore() {
+      scoreText.textContent = `${score}`.padStart(6, "0");
+    }
+
+    function addScore(points) {
+      score += points;
+      renderScore();
     }
 
     function triggerSpray(targetKey) {
@@ -475,7 +524,7 @@
       dot.style.top = `${y}%`;
       dot.title = "Food";
       yard.appendChild(dot);
-      foodDots.push({ id: nextFoodId, x, y, element: dot, timer: 1200 });
+      foodDots.push({ id: nextFoodId, x, y, element: dot, age: 0, eatenProgress: 0, stage: "fresh", fedCats: new Set() });
       nextFoodId += 1;
       playerState.food -= 1;
       renderFoodMeter();
@@ -501,21 +550,48 @@
         if (!cat.active) {
           continue;
         }
-        if (distance(cat.x, cat.y, food.x, food.y) < 8) {
-          satisfyCat(cat);
-        }
         if (cat.foodTargetId === foodId) {
           cat.foodTargetId = null;
         }
       }
     }
 
+    function getFoodStage(age) {
+      if (age >= foodAging.spoiledToGone) {
+        return "gone";
+      }
+      if (age >= foodAging.dryToSpoiled) {
+        return "spoiled";
+      }
+      if (age >= foodAging.freshToDry) {
+        return "dry";
+      }
+      return "fresh";
+    }
+
+    function updateFoodAppearance(food) {
+      food.element.classList.toggle("is-dry", food.stage === "dry");
+      food.element.classList.toggle("is-spoiled", food.stage === "spoiled");
+    }
+
     function updateFoods(delta) {
       for (const food of [...foodDots]) {
-        food.timer -= delta;
-        if (food.timer <= 0) {
+        food.age += delta;
+        const nextStage = getFoodStage(food.age);
+
+        if (nextStage !== food.stage && nextStage !== "gone") {
+          food.stage = nextStage;
+          updateFoodAppearance(food);
+          if (nextStage === "dry") {
+            statusText.textContent = "Some food is drying out and becoming less appealing.";
+          } else if (nextStage === "spoiled") {
+            statusText.textContent = "Some food has spoiled and turned bad.";
+          }
+        }
+
+        if (nextStage === "gone") {
           removeFood(food.id);
-          statusText.textContent = "Food was eaten and some cats are now satisfied.";
+          statusText.textContent = "Old spoiled food finally disappeared.";
         }
       }
     }
@@ -543,6 +619,10 @@
 
       for (const food of foodDots) {
         const currentDistance = distance(cat.x, cat.y, food.x, food.y);
+        const attractionRange = food.stage === "fresh" ? 28 : food.stage === "dry" ? 18 : 10;
+        if (currentDistance > attractionRange) {
+          continue;
+        }
         if (currentDistance < bestDistance) {
           bestDistance = currentDistance;
           best = food;
@@ -586,6 +666,8 @@
     }
 
     function updateCats(delta) {
+      const catsEatingByFood = new Map();
+
       for (const cat of catStates) {
         if (!cat.active) {
           continue;
@@ -641,12 +723,15 @@
 
         const { food, distanceToFood } = pickNearestFood(cat);
 
-        if (food && distanceToFood < 28) {
+        if (food) {
           cat.foodTargetId = food.id;
+          const foodSpeedMultiplier = food.stage === "fresh" ? 1 : food.stage === "dry" ? 0.82 : 0.65;
 
           if (distanceToFood > 2.1) {
-            moveToward(cat, food.x, food.y, cat.speed * delta, false);
+            moveToward(cat, food.x, food.y, cat.speed * foodSpeedMultiplier * delta, false);
           } else {
+            const currentCount = catsEatingByFood.get(food.id) || 0;
+            catsEatingByFood.set(food.id, currentCount + 1);
             cat.wanderTimer = 0;
             cat.wanderAngle += 0.05 * delta;
             const nextX = cat.x + Math.cos(cat.wanderAngle) * 0.02 * delta;
@@ -719,6 +804,32 @@
 
         cat.x = clamp(cat.x, 7, 92);
         cat.y = clamp(cat.y, 7, 92);
+      }
+
+      for (const food of [...foodDots]) {
+        const eaters = catsEatingByFood.get(food.id) || 0;
+        if (eaters === 0) {
+          continue;
+        }
+
+        food.eatenProgress += 0.018 * delta * eaters;
+        for (const cat of catStates) {
+          if (!cat.active || cat.foodTargetId !== food.id) {
+            continue;
+          }
+          if (distance(cat.x, cat.y, food.x, food.y) <= 2.6 && !food.fedCats.has(cat)) {
+            food.fedCats.add(cat);
+          }
+        }
+
+        if (food.eatenProgress >= 1) {
+          for (const cat of food.fedCats) {
+            satisfyCat(cat);
+            addScore(scoring.catFed);
+          }
+          removeFood(food.id);
+          statusText.textContent = "Cats ate the food and some are now satisfied.";
+        }
       }
 
       renderCats();
@@ -899,6 +1010,7 @@
     renderPlayer();
     renderCats();
     renderFoodMeter();
+    renderScore();
     renderTripCounter();
     requestAnimationFrame(step);
   </script>

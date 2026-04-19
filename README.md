@@ -24,6 +24,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 - The player moves with keyboard or joystick-style controls
 - Food can be placed to attract cats toward a target location
 - Cats path toward nearby food and bunch up around it
+- Placed food now ages through fresh, drying, and spoiled states instead of vanishing on a short timer
 - Overcrowding can block movement, surround the player, or create risk
 - A cat can trip the feeder and spill food, causing sudden disorder
 - Additional cats appear over time, increasing yard pressure
@@ -123,6 +124,7 @@ Using JavaScript or Python here gives us faster iteration on:
 - cat behavior tuning
 - spawn pacing
 - food attraction logic
+- food aging and spoilage timing
 - trap interactions
 - failure states
 - UI and readability
