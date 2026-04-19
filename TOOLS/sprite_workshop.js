@@ -136,6 +136,10 @@ const spriteMeta = document.getElementById("spriteMeta");
 const paintMeta = document.getElementById("paintMeta");
 const clearButton = document.getElementById("clearButton");
 const mirrorButton = document.getElementById("mirrorButton");
+const mirrorVerticalButton = document.getElementById("mirrorVerticalButton");
+const rotateClockwiseButton = document.getElementById("rotateClockwiseButton");
+const rotateCounterClockwiseButton = document.getElementById("rotateCounterClockwiseButton");
+const rotate180Button = document.getElementById("rotate180Button");
 const undoButton = document.getElementById("undoButton");
 const redoButton = document.getElementById("redoButton");
 const copyButton = document.getElementById("copyButton");
@@ -476,6 +480,69 @@ function mirrorSprite() {
   updateStatus("Mirrored sprite horizontally.");
 }
 
+function mirrorSpriteVertical() {
+  const mirrored = makePixels(state.size);
+  for (let y = 0; y < state.size; y += 1) {
+    for (let x = 0; x < state.size; x += 1) {
+      const from = indexFor(x, y);
+      const to = (state.size - 1 - y) * state.size + x;
+      mirrored[to] = state.pixels[from];
+    }
+  }
+
+  state.pixels = mirrored;
+  renderCanvas();
+  updateStatus("Mirrored sprite vertically.");
+}
+
+function rotateClockwise() {
+  const rotated = makePixels(state.size);
+  for (let y = 0; y < state.size; y += 1) {
+    for (let x = 0; x < state.size; x += 1) {
+      const from = indexFor(x, y);
+      const toX = state.size - 1 - y;
+      const toY = x;
+      rotated[toY * state.size + toX] = state.pixels[from];
+    }
+  }
+
+  state.pixels = rotated;
+  renderCanvas();
+  updateStatus("Rotated sprite 90 degrees clockwise.");
+}
+
+function rotateCounterClockwise() {
+  const rotated = makePixels(state.size);
+  for (let y = 0; y < state.size; y += 1) {
+    for (let x = 0; x < state.size; x += 1) {
+      const from = indexFor(x, y);
+      const toX = y;
+      const toY = state.size - 1 - x;
+      rotated[toY * state.size + toX] = state.pixels[from];
+    }
+  }
+
+  state.pixels = rotated;
+  renderCanvas();
+  updateStatus("Rotated sprite 90 degrees counterclockwise.");
+}
+
+function rotate180() {
+  const rotated = makePixels(state.size);
+  for (let y = 0; y < state.size; y += 1) {
+    for (let x = 0; x < state.size; x += 1) {
+      const from = indexFor(x, y);
+      const toX = state.size - 1 - x;
+      const toY = state.size - 1 - y;
+      rotated[toY * state.size + toX] = state.pixels[from];
+    }
+  }
+
+  state.pixels = rotated;
+  renderCanvas();
+  updateStatus("Rotated sprite 180 degrees.");
+}
+
 async function copyJson() {
   const json = exportBuffer.value;
   try {
@@ -611,6 +678,22 @@ clearButton.addEventListener("click", () => {
 mirrorButton.addEventListener("click", () => {
   pushHistory();
   mirrorSprite();
+});
+mirrorVerticalButton.addEventListener("click", () => {
+  pushHistory();
+  mirrorSpriteVertical();
+});
+rotateClockwiseButton.addEventListener("click", () => {
+  pushHistory();
+  rotateClockwise();
+});
+rotateCounterClockwiseButton.addEventListener("click", () => {
+  pushHistory();
+  rotateCounterClockwise();
+});
+rotate180Button.addEventListener("click", () => {
+  pushHistory();
+  rotate180();
 });
 undoButton.addEventListener("click", undoAction);
 redoButton.addEventListener("click", redoAction);

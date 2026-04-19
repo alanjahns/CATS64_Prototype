@@ -95,10 +95,6 @@
           <p id="paintMeta">0 painted pixels</p>
         </div>
 
-        <div class="button-row">
-          <button id="clearButton" type="button">Clear Sprite</button>
-          <button id="mirrorButton" type="button">Mirror Horizontally</button>
-        </div>
       </section>
 
       <section class="panel canvas-panel">
@@ -110,13 +106,19 @@
           <p class="canvas-note">Click or drag to paint. Use flood fill for larger blocks.</p>
         </div>
 
+        <div class="canvas-shell">
+          <canvas id="spriteCanvas" width="24" height="24" aria-label="Sprite drawing canvas"></canvas>
+        </div>
+
         <div class="button-row canvas-actions">
           <button id="undoButton" type="button">Undo</button>
           <button id="redoButton" type="button">Redo</button>
-        </div>
-
-        <div class="canvas-shell">
-          <canvas id="spriteCanvas" width="24" height="24" aria-label="Sprite drawing canvas"></canvas>
+          <button id="clearButton" type="button">Clear Sprite</button>
+          <button id="mirrorButton" type="button">Mirror Horizontally</button>
+          <button id="mirrorVerticalButton" type="button">Mirror Vertically</button>
+          <button id="rotateClockwiseButton" type="button">Rotate 90 CW</button>
+          <button id="rotateCounterClockwiseButton" type="button">Rotate 90 CCW</button>
+          <button id="rotate180Button" type="button">Rotate 180</button>
         </div>
       </section>
 
