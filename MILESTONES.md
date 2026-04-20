@@ -17,3 +17,4 @@
 15. IN PROGRESS 6/10 - Add a difficulty ramp with a start screen, named starting difficulties, and increased cat pressure over time based on cats fed.
 16. IN PROGRESS 4/10 - Define and test temporary success and failure conditions for a playable prototype loop.
 17. IN PROGRESS 5/10 - Build a minimum fun playable prototype that demonstrates the full core loop.
+18. IN PROGRESS 3/10 - Establish an audio asset pipeline with placeholder effects now and real replacement sound files later.

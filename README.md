@@ -194,6 +194,22 @@ We should also expect to revisit:
 
 The sprite workshop in the parent `C64` directory is part of the long-term pipeline. We can use it to experiment with cat, player, trap, and yard object sprites as the prototype becomes more concrete.
 
+## Audio Plan
+
+For now, the prototype can use generated placeholder effects and short retro-style cues so we can tune timing and feedback quickly.
+
+Planned audio approach:
+
+- Keep placeholder sounds in `ASSETS/audio/` for trip, level-up, feeding, and other event hooks
+- Allow those placeholders to be replaced later with real recorded or designed sound files you provide
+- Prefer simple browser-friendly formats such as `wav`, `ogg`, or `mp3`
+- Treat event timing and clarity as part of gameplay tuning, not just polish
+
+Short-term goal:
+
+- Generate and wire placeholder audio assets now so the game has a stable audio pipeline
+- Swap in real sounds later without changing the surrounding gameplay code much
+
 ## Publishing Path
 
 The long-term goal is still a real C64 game, but the practical near-term publishing target is a browser-playable HTML5 version that can be hosted on `itch.io`. That gives us a low-friction way to share the prototype, gather feedback, support donations, and show real project progress in public before the C64 version is ready.

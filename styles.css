@@ -464,7 +464,7 @@ h1 {
 
 .fence-hud {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.28fr) auto minmax(0, 0.24fr) auto minmax(0, 0.28fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.18fr) auto minmax(0, 0.24fr) auto minmax(0, 0.24fr) auto minmax(0, 0.28fr) auto minmax(0, 1fr);
   align-items: center;
   width: 100%;
   height: 100%;
@@ -491,6 +491,7 @@ h1 {
 }
 
 .fence-hud-score,
+.fence-hud-level,
 .fence-hud-food,
 .fence-hud-cats,
 .fence-hud-lives {
@@ -500,9 +501,15 @@ h1 {
 }
 
 .fence-hud-score,
+.fence-hud-level,
 .fence-hud-cats,
 .fence-hud-lives {
   font-size: 1.22em;
+}
+
+.fence-hud-level {
+  min-width: 3.9em;
+  text-align: center;
 }
 
 .fence-hud-cats {
@@ -908,8 +915,8 @@ h1 {
   }
 
   .fence-hud {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.12fr) auto minmax(0, 0.1fr) auto minmax(0, 0.12fr) auto minmax(0, 1fr);
-    font-size: 0.76rem;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.08fr) auto minmax(0, 0.1fr) auto minmax(0, 0.1fr) auto minmax(0, 0.12fr) auto minmax(0, 1fr);
+    font-size: 0.7rem;
   }
 }
 
@@ -948,9 +955,9 @@ h1 {
   }
 
   .fence-hud {
-    grid-template-columns: minmax(0, 1fr) auto auto auto auto auto minmax(0, 0.8fr);
-    gap: 0.14rem;
-    font-size: 0.58rem;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto auto auto auto minmax(0, 0.8fr);
+    gap: 0.12rem;
+    font-size: 0.5rem;
     padding: 0 1%;
   }
 
@@ -963,6 +970,10 @@ h1 {
   }
 
   .fence-hud-posts-center-3 {
+    display: none;
+  }
+
+  .fence-hud-posts-center-4 {
     display: none;
   }
 }

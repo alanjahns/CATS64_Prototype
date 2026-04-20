@@ -106,6 +106,8 @@
                 <span class="fence-hud-posts fence-hud-posts-left" aria-hidden="true"></span>
                 <span class="fence-hud-score" id="scoreText">000000</span>
                 <span class="fence-hud-posts fence-hud-posts-center" aria-hidden="true"></span>
+                <span class="fence-hud-level" id="levelText">LVL 1</span>
+                <span class="fence-hud-posts fence-hud-posts-center-4" aria-hidden="true"></span>
                 <span class="fence-hud-food" id="foodHud" aria-label="Food supply">
                   <span class="food-dot-hud is-filled"></span>
                   <span class="food-dot-hud is-filled"></span>
@@ -240,6 +242,7 @@
     const scoreText = document.getElementById("scoreText");
     const foodHud = document.getElementById("foodHud");
     const catCountText = document.getElementById("catCountText");
+    const levelText = document.getElementById("levelText");
     const livesText = document.getElementById("livesText");
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
@@ -337,6 +340,7 @@
     let nextPressureGoal = difficultyProfiles[selectedDifficultyKey].feedGoalBase;
     const maxCats = 20;
     let audioContext;
+    let levelUpAudio;
     const houseBounds = {
       left: 31,
       right: 69,
@@ -459,6 +463,14 @@
         }
       }
       return audioContext;
+    }
+
+    function ensureLevelUpAudio() {
+      if (!levelUpAudio) {
+        levelUpAudio = new Audio("./ASSETS/audio/level_up_placeholder.wav");
+        levelUpAudio.preload = "auto";
+      }
+      return levelUpAudio;
     }
 
     function playSprayBlip() {
@@ -666,6 +678,10 @@
       catCountText.textContent = `CATS ${activeCats}`;
     }
 
+    function renderLevel() {
+      levelText.textContent = `LVL ${currentPressureTier + 1}`;
+    }
+
     function renderScore() {
       scoreText.textContent = `${score}`.padStart(6, "0");
     }
@@ -692,6 +708,11 @@
       if (tierUps === 0) {
         return null;
       }
+
+      renderLevel();
+      const levelUpSound = ensureLevelUpAudio();
+      levelUpSound.currentTime = 0;
+      levelUpSound.play().catch(() => {});
 
       return `${getDifficultyProfile().label} ramped up to pressure tier ${currentPressureTier + 1}. Cats can enter faster and in larger bursts.`;
     }
@@ -733,6 +754,7 @@
       renderPlayer();
       renderCats();
       renderCatCounter();
+      renderLevel();
       renderFoodMeter();
       renderScore();
       renderTripCounter();
@@ -1302,6 +1324,7 @@
     renderPlayer();
     updateSelectedDifficultyButtons();
     resetAllCats();
+    renderLevel();
     renderFoodMeter();
     renderScore();
     renderTripCounter();
