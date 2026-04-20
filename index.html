@@ -162,6 +162,11 @@
             <div class="marker marker-cat" id="catA" aria-label="Cat A"><canvas class="cat-sprite" width="24" height="24" aria-hidden="true"></canvas><span class="cat-status"></span></div>
             <div class="marker marker-cat" id="catB" aria-label="Cat B"><canvas class="cat-sprite" width="24" height="24" aria-hidden="true"></canvas><span class="cat-status"></span></div>
             <div class="marker marker-cat" id="catC" aria-label="Cat C"><canvas class="cat-sprite" width="24" height="24" aria-hidden="true"></canvas><span class="cat-status"></span></div>
+            <div class="fight-marker" id="fightMarker" aria-hidden="true">!!</div>
+            <div class="peacemaker-flash" id="peacemakerFlash" aria-live="polite">
+              <span class="peacemaker-flash-main">PEACEMAKER</span>
+              <span class="peacemaker-flash-points">+050</span>
+            </div>
             <div class="spray-mark spray-tree" id="sprayTree"></div>
             <div class="spray-mark spray-shed" id="sprayShed"></div>
           </div>
@@ -244,6 +249,8 @@
     const catCountText = document.getElementById("catCountText");
     const levelText = document.getElementById("levelText");
     const livesText = document.getElementById("livesText");
+    const fightMarker = document.getElementById("fightMarker");
+    const peacemakerFlash = document.getElementById("peacemakerFlash");
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
     const startScreen = document.getElementById("startScreen");
@@ -274,7 +281,8 @@
     };
     const scoring = {
       catFed: 10,
-      catFixed: 50
+      catFixed: 50,
+      peacemaker: 50
     };
     const difficultyProfiles = {
       easy: {
@@ -341,6 +349,17 @@
     const maxCats = 20;
     let audioContext;
     let levelUpAudio;
+    const fightState = {
+      active: false,
+      catA: null,
+      catB: null,
+      timer: 0,
+      cooldown: 240,
+      soundPulseTimer: 0,
+      markerX: 50,
+      markerY: 50,
+      flashTimer: 0
+    };
     const houseBounds = {
       left: 31,
       right: 69,
@@ -420,6 +439,7 @@
       cat.foodTargetId = null;
       cat.satisfiedTimer = 0;
       cat.contactCooldown = 0;
+      cat.fightCooldown = 0;
       cat.sprayingTimer = 0;
       cat.sprayCooldown = 420 + Math.random() * 240;
     }
@@ -441,8 +461,13 @@
       cat.foodTargetId = null;
       cat.satisfiedTimer = 0;
       cat.contactCooldown = 0;
+      cat.fightCooldown = 0;
       cat.sprayingTimer = 0;
       cat.sprayCooldown = 420 + Math.random() * 240;
+    }
+
+    function isFightCat(cat) {
+      return fightState.active && (cat === fightState.catA || cat === fightState.catB);
     }
 
     function setStartScreenVisible(visible) {
@@ -541,6 +566,39 @@
       oscillator.stop(startTime + 0.34);
     }
 
+    function playFightSquabble() {
+      const ctx = ensureAudioContext();
+      if (!ctx) {
+        return;
+      }
+
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+
+      const startTime = ctx.currentTime;
+      const pattern = [
+        { time: 0, freq: 810, gain: 0.065 },
+        { time: 0.06, freq: 540, gain: 0.06 },
+        { time: 0.12, freq: 880, gain: 0.062 },
+        { time: 0.18, freq: 510, gain: 0.056 }
+      ];
+
+      pattern.forEach((step) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(step.freq, startTime + step.time);
+        gain.gain.setValueAtTime(0.0001, startTime + step.time);
+        gain.gain.linearRampToValueAtTime(step.gain, startTime + step.time + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + step.time + 0.09);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime + step.time);
+        osc.stop(startTime + step.time + 0.095);
+      });
+    }
+
     function pickAlteredState() {
       return chance(0.28);
     }
@@ -570,6 +628,7 @@
           foodTargetId: null,
           satisfiedTimer: 0,
           contactCooldown: 0,
+          fightCooldown: 0,
           active: false,
           altered: pickAlteredState(),
           sex: pickSex(),
@@ -642,6 +701,7 @@
         cat.element.classList.toggle("is-altered", cat.altered);
         cat.element.classList.toggle("is-spraying", cat.sprayingTimer > 0);
         cat.element.classList.toggle("is-male", cat.sex === "male");
+        cat.element.classList.toggle("is-fighting", isFightCat(cat));
         if (!cat.active) {
           continue;
         }
@@ -682,6 +742,19 @@
       levelText.textContent = `LVL ${currentPressureTier + 1}`;
     }
 
+    function renderFightMarker() {
+      fightMarker.classList.toggle("is-active", fightState.active);
+      if (!fightState.active) {
+        return;
+      }
+      fightMarker.style.left = `${fightState.markerX}%`;
+      fightMarker.style.top = `${fightState.markerY}%`;
+    }
+
+    function renderPeacemakerFlash() {
+      peacemakerFlash.classList.toggle("is-active", fightState.flashTimer > 0);
+    }
+
     function renderScore() {
       scoreText.textContent = `${score}`.padStart(6, "0");
     }
@@ -689,6 +762,120 @@
     function addScore(points) {
       score += points;
       renderScore();
+    }
+
+    function endFight(success = false) {
+      if (!fightState.active) {
+        return;
+      }
+
+      const fighters = [fightState.catA, fightState.catB].filter(Boolean);
+      for (const cat of fighters) {
+        cat.contactCooldown = Math.max(cat.contactCooldown, 90);
+        cat.fightCooldown = 420;
+        cat.foodTargetId = null;
+        if (success) {
+          cat.satisfiedTimer = Math.max(cat.satisfiedTimer, 480);
+        }
+      }
+
+      fightState.active = false;
+      fightState.catA = null;
+      fightState.catB = null;
+      fightState.timer = 0;
+      fightState.cooldown = 360;
+      fightState.soundPulseTimer = 0;
+      renderFightMarker();
+      renderCats();
+    }
+
+    function showPeacemakerFlash() {
+      peacemakerFlash.querySelector(".peacemaker-flash-points").textContent = `+${String(scoring.peacemaker).padStart(3, "0")}`;
+      fightState.flashTimer = 120;
+      renderPeacemakerFlash();
+    }
+
+    function updateFightMidpoint() {
+      if (!fightState.active || !fightState.catA || !fightState.catB) {
+        return;
+      }
+
+      fightState.markerX = (fightState.catA.x + fightState.catB.x) / 2;
+      fightState.markerY = (fightState.catA.y + fightState.catB.y) / 2 - 2.4;
+      renderFightMarker();
+    }
+
+    function startFight(catA, catB) {
+      fightState.active = true;
+      fightState.catA = catA;
+      fightState.catB = catB;
+      fightState.timer = 210;
+      fightState.cooldown = 420;
+      fightState.soundPulseTimer = 42;
+      catA.foodTargetId = null;
+      catB.foodTargetId = null;
+      catA.fightCooldown = 420;
+      catB.fightCooldown = 420;
+      updateFightMidpoint();
+      renderCats();
+      playFightSquabble();
+      statusText.textContent = "Two cats are fighting. Drop food nearby to make peace.";
+    }
+
+    function maybeStartFight(delta) {
+      if (fightState.active) {
+        return;
+      }
+
+      fightState.cooldown = Math.max(0, fightState.cooldown - delta);
+      if (fightState.cooldown > 0) {
+        return;
+      }
+
+      const candidates = catStates.filter((cat) =>
+        cat.active &&
+        cat.satisfiedTimer <= 0 &&
+        cat.sprayingTimer <= 0 &&
+        cat.contactCooldown <= 0 &&
+        (cat.fightCooldown || 0) <= 0 &&
+        cat.foodTargetId === null
+      );
+
+      if (candidates.length < 2 || !chance(0.0032 * delta)) {
+        return;
+      }
+
+      let bestPair = null;
+      let bestDistance = Infinity;
+      for (let index = 0; index < candidates.length; index += 1) {
+        for (let inner = index + 1; inner < candidates.length; inner += 1) {
+          const gap = distance(candidates[index].x, candidates[index].y, candidates[inner].x, candidates[inner].y);
+          if (gap < 14 && gap < bestDistance) {
+            bestDistance = gap;
+            bestPair = [candidates[index], candidates[inner]];
+          }
+        }
+      }
+
+      if (bestPair) {
+        startFight(bestPair[0], bestPair[1]);
+      }
+    }
+
+    function maybeResolveFightWithFood(x, y) {
+      if (!fightState.active) {
+        return false;
+      }
+
+      if (distance(x, y, fightState.markerX, fightState.markerY) > 8) {
+        return false;
+      }
+
+      addScore(scoring.peacemaker);
+      showPeacemakerFlash();
+      endFight(true);
+      statusText.textContent = "Peacemaker! Food broke up the cat fight.";
+      return true;
     }
 
     function updatePressureProgress() {
@@ -728,6 +915,13 @@
       gameStarted = true;
       pressedKeys.clear();
       clearAllFood();
+      fightState.active = false;
+      fightState.catA = null;
+      fightState.catB = null;
+      fightState.timer = 0;
+      fightState.cooldown = 240;
+      fightState.soundPulseTimer = 0;
+      fightState.flashTimer = 0;
       resetAllCats();
       updateSelectedDifficultyButtons();
 
@@ -758,6 +952,8 @@
       renderFoodMeter();
       renderScore();
       renderTripCounter();
+      renderFightMarker();
+      renderPeacemakerFlash();
       setStartScreenVisible(false);
       statusText.textContent = `${profile.label} started with ${profile.startCats} cats in the yard. Feed ${nextPressureGoal} cats to raise the pressure.`;
     }
@@ -816,7 +1012,9 @@
       nextFoodId += 1;
       playerState.food -= 1;
       renderFoodMeter();
-      statusText.textContent = `Food placed at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
+      statusText.textContent = maybeResolveFightWithFood(x, y)
+        ? "PEACEMAKER +050"
+        : `Food placed at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
     }
 
     function satisfyCat(cat, duration = 900) {
@@ -959,6 +1157,21 @@
     function updateCats(delta) {
       const catsEatingByFood = new Map();
 
+      if (fightState.active) {
+        fightState.timer -= delta;
+        fightState.soundPulseTimer -= delta;
+        if (fightState.soundPulseTimer <= 0) {
+          playFightSquabble();
+          fightState.soundPulseTimer = 50;
+        }
+        if (fightState.timer <= 0) {
+          endFight(false);
+          statusText.textContent = "The cat fight ended before you could make peace.";
+        }
+      } else {
+        maybeStartFight(delta);
+      }
+
       for (const cat of catStates) {
         if (!cat.active) {
           continue;
@@ -968,8 +1181,29 @@
           cat.contactCooldown -= delta;
         }
 
+        if ((cat.fightCooldown || 0) > 0) {
+          cat.fightCooldown -= delta;
+        }
+
         if (cat.sprayCooldown > 0) {
           cat.sprayCooldown -= delta;
+        }
+
+        if (isFightCat(cat)) {
+          cat.foodTargetId = null;
+          const partner = cat === fightState.catA ? fightState.catB : fightState.catA;
+          if (!partner) {
+            continue;
+          }
+          const midpointX = (cat.x + partner.x) / 2;
+          const midpointY = (cat.y + partner.y) / 2;
+          const sideOffset = cat === fightState.catA ? -1.2 : 1.2;
+          const bob = Math.sin((fightState.timer + (cat === fightState.catA ? 0 : 1.6)) * 0.35) * 0.55;
+          moveToward(cat, midpointX + sideOffset, midpointY + bob, cat.speed * 0.92 * delta, false);
+          cat.wanderAngle += 0.38 * delta;
+          cat.x = clamp(cat.x, 7, 92);
+          cat.y = clamp(cat.y, 7, 92);
+          continue;
         }
 
         if (cat.sprayingTimer > 0) {
@@ -1125,6 +1359,7 @@
         }
       }
 
+      updateFightMidpoint();
       renderCats();
     }
 
@@ -1134,7 +1369,7 @@
       }
 
       for (const cat of catStates) {
-        if (!cat.active || cat.contactCooldown > 0) {
+        if (!cat.active || cat.contactCooldown > 0 || isFightCat(cat)) {
           continue;
         }
 
@@ -1193,6 +1428,13 @@
       }
 
       if (!gameStarted) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      if (fightState.flashTimer > 0) {
+        fightState.flashTimer = Math.max(0, fightState.flashTimer - delta);
+        renderPeacemakerFlash();
         requestAnimationFrame(step);
         return;
       }
@@ -1328,6 +1570,8 @@
     renderFoodMeter();
     renderScore();
     renderTripCounter();
+    renderFightMarker();
+    renderPeacemakerFlash();
     setStartScreenVisible(true);
     requestAnimationFrame(step);
   </script>

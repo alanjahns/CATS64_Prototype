@@ -74,6 +74,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 ### 3. Chaos events
 
 - Feeder trip or food spill event
+- Cat fights that briefly pull cats away from normal behavior and create a short response window
 - Temporary disorder spikes
 - Recovery windows for the player
 - How often chaos happens and whether it feels fair
@@ -115,6 +116,15 @@ When the player hits the current feed target, the game does not jump to another 
 - spawn cooldown shortens
 
 That keeps `Easy` as a gentler starting curve, `Medium` as the default pressure curve, and `Hard` as a high-pressure opening, while all three still ramp over time.
+
+## Planned Bonus And Achievement Ideas
+
+- Herding bonus: if the player successfully leads a large enough group of cats into a designated feeding area and feeds them there, award bonus points. The group size requirement should scale from the chosen starting difficulty and continue scaling with pressure tiers.
+- `Peacemaker` achievement: if two cats are visibly distracted because they are fighting, the player can rush over and drop food in time to break up the fight. Doing so awards bonus points or an achievement-style reward. If the player arrives too late, the fight ends as a missed opportunity instead of a reward.
+
+Current prototype note:
+
+- `Peacemaker` is now implemented as a first-pass scoring event worth 50 points. A visible cat fight can break out, it makes a noticeable sound, and dropping food near the fight in time shows a one-second `PEACEMAKER +050` reward flash.
 
 ## Prototype Goals
 
