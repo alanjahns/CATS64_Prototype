@@ -163,7 +163,7 @@
         <div class="button-row">
           <button id="copyButton" type="button">Copy JSON</button>
           <button id="downloadButton" type="button">Download JSON</button>
-          <button id="loadButton" type="button">Load JSON</button>
+          <button id="loadButton" type="button">Load From File</button>
         </div>
       </div>
 
@@ -176,6 +176,8 @@
         <span>Export / Import Buffer</span>
         <textarea id="exportBuffer" spellcheck="false"></textarea>
       </label>
+
+      <input id="loadFileInput" type="file" accept=".json,application/json" hidden>
 
       <p class="status-line" id="statusLine">Workshop ready.</p>
     </section>

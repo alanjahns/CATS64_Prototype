@@ -145,6 +145,7 @@ const redoButton = document.getElementById("redoButton");
 const copyButton = document.getElementById("copyButton");
 const downloadButton = document.getElementById("downloadButton");
 const loadButton = document.getElementById("loadButton");
+const loadFileInput = document.getElementById("loadFileInput");
 const exportBuffer = document.getElementById("exportBuffer");
 const statusLine = document.getElementById("statusLine");
 const spriteCanvas = document.getElementById("spriteCanvas");
@@ -567,32 +568,57 @@ function downloadJson() {
   updateStatus(`Downloaded ${safeName}.json.`);
 }
 
-function loadJson() {
+function applyLoadedSprite(parsed, sourceLabel) {
+  if (parsed.type !== "cats64-sprite" || typeof parsed.width !== "number" || typeof parsed.height !== "number") {
+    throw new Error("Unrecognized sprite format.");
+  }
+  if (parsed.width !== parsed.height || ![16, 24, 32].includes(parsed.width)) {
+    throw new Error("Only 16x16, 24x24, and 32x32 sprites are supported right now.");
+  }
+  if (!Array.isArray(parsed.pixels) || parsed.pixels.length !== parsed.width * parsed.height) {
+    throw new Error("Pixel data length does not match sprite size.");
+  }
+
+  pushHistory();
+  state.size = parsed.width;
+  state.pixels = parsed.pixels.map((value) => (Number.isInteger(value) && value >= 0 && value < palette.length ? value : 0));
+  spriteNameInput.value = typeof parsed.name === "string" && parsed.name.trim() ? parsed.name.trim() : "loaded-sprite";
+  sizeInputs.forEach((input) => {
+    input.checked = Number(input.value) === state.size;
+  });
+  exportBuffer.value = JSON.stringify(parsed, null, 2);
+  updateCanvasSize();
+  renderCanvas();
+  renderStampTray();
+  updateStatus(`Loaded ${state.size}x${state.size} sprite from ${sourceLabel}.`);
+}
+
+function loadJsonFromBuffer() {
   try {
     const parsed = JSON.parse(exportBuffer.value);
-    if (parsed.type !== "cats64-sprite" || typeof parsed.width !== "number" || typeof parsed.height !== "number") {
-      throw new Error("Unrecognized sprite format.");
-    }
-    if (parsed.width !== parsed.height || ![16, 24, 32].includes(parsed.width)) {
-      throw new Error("Only 16x16, 24x24, and 32x32 sprites are supported right now.");
-    }
-    if (!Array.isArray(parsed.pixels) || parsed.pixels.length !== parsed.width * parsed.height) {
-      throw new Error("Pixel data length does not match sprite size.");
-    }
-
-    pushHistory();
-    state.size = parsed.width;
-    state.pixels = parsed.pixels.map((value) => (Number.isInteger(value) && value >= 0 && value < palette.length ? value : 0));
-    spriteNameInput.value = typeof parsed.name === "string" && parsed.name.trim() ? parsed.name.trim() : "loaded-sprite";
-    sizeInputs.forEach((input) => {
-      input.checked = Number(input.value) === state.size;
-    });
-    updateCanvasSize();
-    renderCanvas();
-    renderStampTray();
-    updateStatus(`Loaded ${state.size}x${state.size} sprite from JSON.`);
+    applyLoadedSprite(parsed, "the import buffer");
   } catch (error) {
     updateStatus(error.message || "Could not load sprite JSON.");
+  }
+}
+
+function loadJsonFromFile() {
+  loadFileInput.click();
+}
+
+async function handleFileSelection() {
+  const [file] = loadFileInput.files || [];
+  if (!file) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(await file.text());
+    applyLoadedSprite(parsed, file.name);
+  } catch (error) {
+    updateStatus(error.message || "Could not load sprite JSON.");
+  } finally {
+    loadFileInput.value = "";
   }
 }
 
@@ -701,7 +727,8 @@ undoButton.disabled = true;
 redoButton.disabled = true;
 copyButton.addEventListener("click", copyJson);
 downloadButton.addEventListener("click", downloadJson);
-loadButton.addEventListener("click", loadJson);
+loadButton.addEventListener("click", loadJsonFromFile);
+loadFileInput.addEventListener("change", handleFileSelection);
 
 setSize(24);
 renderPalette();
