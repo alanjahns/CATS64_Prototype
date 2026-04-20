@@ -1419,11 +1419,18 @@
           playerState.tripCount += 1;
           playerState.trippedTimer = 55;
           playerState.tripCooldown = 160;
+          const foodLost = playerState.food > 0
+            ? Math.max(1, Math.floor(playerState.food / 2))
+            : 0;
+          playerState.food = Math.max(0, playerState.food - foodLost);
           cat.contactCooldown = 180;
           playTripVoice();
+          renderFoodMeter();
           renderTripCounter();
           renderPlayer();
-          statusText.textContent = `Cat trip! Count is now ${playerState.tripCount}.`;
+          statusText.textContent = foodLost > 0
+            ? `Cat trip! ${foodLost} food rolled away. Count is now ${playerState.tripCount}.`
+            : `Cat trip! Count is now ${playerState.tripCount}.`;
           break;
         }
       }
