@@ -44,11 +44,11 @@
       <section class="controls-bar">
         <div class="controls-card">
           <strong>Controls</strong>
-          <p>`WASD` or arrow keys to move. Press `Space` to drop a food dot.</p>
+          <p>`WASD` or arrow keys to move. Press `Space` to drop food and `P` to pause.</p>
         </div>
         <div class="controls-card">
           <strong>Status</strong>
-          <p id="statusText">Player can move through the yard, place food, and watch cats react to nearby drops.</p>
+          <p id="statusText">Choose a starting difficulty in the yard view to begin the run.</p>
         </div>
         <div class="controls-card">
           <strong>Food Supply</strong>
@@ -71,6 +71,31 @@
       <div class="yard-frame">
         <div class="yard-grid" aria-label="Top-down fenced yard prototype">
           <div class="yard" id="yard">
+            <div class="start-screen" id="startScreen">
+              <div class="start-screen-panel">
+                <p class="start-screen-kicker">CATS64 Start</p>
+                <h3>Choose Starting Pressure</h3>
+                <p class="start-screen-copy">
+                  Pick a starting difficulty. Each mode begins with a different cat count and spawn burst,
+                  then ramps upward as you feed more cats.
+                </p>
+                <div class="start-screen-buttons">
+                  <button class="start-button start-button-easy" type="button" data-difficulty="easy">
+                    <span class="start-button-name">Easy</span>
+                    <span class="start-button-detail">2 cats start, 1 jumps in at a time, pressure rises every 6 fed cats.</span>
+                  </button>
+                  <button class="start-button start-button-medium" type="button" data-difficulty="medium">
+                    <span class="start-button-name">Medium</span>
+                    <span class="start-button-detail">3 cats start, up to 2 jump in, pressure rises every 5 fed cats.</span>
+                  </button>
+                  <button class="start-button start-button-hard" type="button" data-difficulty="hard">
+                    <span class="start-button-name">Hard</span>
+                    <span class="start-button-detail">4 cats start, 2 jump in immediately, pressure rises every 4 fed cats.</span>
+                  </button>
+                </div>
+                <p class="start-screen-note">Keyboard shortcut: press <strong>1</strong>, <strong>2</strong>, or <strong>3</strong> to start.</p>
+              </div>
+            </div>
             <div class="zone zone-patch"></div>
             <div class="zone zone-dirt"></div>
             <div class="zone zone-shadow"></div>
@@ -94,6 +119,8 @@
                   <span class="food-dot-hud is-filled"></span>
                 </span>
                 <span class="fence-hud-posts fence-hud-posts-center-2" aria-hidden="true"></span>
+                <span class="fence-hud-cats" id="catCountText">CATS 0</span>
+                <span class="fence-hud-posts fence-hud-posts-center-3" aria-hidden="true"></span>
                 <span class="fence-hud-lives" id="livesText">3/3</span>
                 <span class="fence-hud-posts fence-hud-posts-right" aria-hidden="true"></span>
               </div>
@@ -212,17 +239,20 @@
     const foodMeterText = document.getElementById("foodMeterText");
     const scoreText = document.getElementById("scoreText");
     const foodHud = document.getElementById("foodHud");
+    const catCountText = document.getElementById("catCountText");
     const livesText = document.getElementById("livesText");
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
+    const startScreen = document.getElementById("startScreen");
+    const startButtons = [...document.querySelectorAll(".start-button")];
     const sprayMarks = {
       tree: document.getElementById("sprayTree"),
       shed: document.getElementById("sprayShed")
     };
     const catStates = [
-      { element: document.getElementById("catA"), canvas: document.querySelector("#catA .cat-sprite"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "male", sprayingTimer: 0, sprayCooldown: 420, variant: "orange" },
-      { element: document.getElementById("catB"), canvas: document.querySelector("#catB .cat-sprite"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: true, sex: "female", sprayingTimer: 0, sprayCooldown: 420, variant: "tan" },
-      { element: document.getElementById("catC"), canvas: document.querySelector("#catC .cat-sprite"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: true, altered: false, sex: "female", sprayingTimer: 0, sprayCooldown: 420, variant: "dark" }
+      { element: document.getElementById("catA"), canvas: document.querySelector("#catA .cat-sprite"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: false, sex: "male", sprayingTimer: 0, sprayCooldown: 420, variant: "orange" },
+      { element: document.getElementById("catB"), canvas: document.querySelector("#catB .cat-sprite"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: true, sex: "female", sprayingTimer: 0, sprayCooldown: 420, variant: "tan" },
+      { element: document.getElementById("catC"), canvas: document.querySelector("#catC .cat-sprite"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: false, sex: "female", sprayingTimer: 0, sprayCooldown: 420, variant: "dark" }
     ];
     const foodDots = [];
     const pressedKeys = new Set();
@@ -243,16 +273,68 @@
       catFed: 10,
       catFixed: 50
     };
+    const difficultyProfiles = {
+      easy: {
+        label: "Easy",
+        startCats: 2,
+        initialBatch: 1,
+        maxBatch: 2,
+        activeCapBase: 5,
+        spawnCooldownBase: 360,
+        spawnCooldownFloor: 185,
+        spawnCooldownStep: 18,
+        feedGoalBase: 6,
+        feedGoalGrowth: 0
+      },
+      medium: {
+        label: "Medium",
+        startCats: 3,
+        initialBatch: 2,
+        maxBatch: 3,
+        activeCapBase: 6,
+        spawnCooldownBase: 310,
+        spawnCooldownFloor: 150,
+        spawnCooldownStep: 20,
+        feedGoalBase: 5,
+        feedGoalGrowth: 0
+      },
+      hard: {
+        label: "Hard",
+        startCats: 4,
+        initialBatch: 2,
+        maxBatch: 4,
+        activeCapBase: 7,
+        spawnCooldownBase: 265,
+        spawnCooldownFloor: 120,
+        spawnCooldownStep: 22,
+        feedGoalBase: 4,
+        feedGoalGrowth: 0
+      }
+    };
     const foodAging = {
       freshToDry: 1200,
       dryToSpoiled: 1800,
       spoiledToGone: 5400
     };
+    const initialCatPoints = [
+      { x: 22, y: 37 },
+      { x: 26, y: 47 },
+      { x: 72, y: 38 },
+      { x: 19, y: 66 },
+      { x: 78, y: 67 },
+      { x: 58, y: 82 }
+    ];
     let score = 0;
+    let catsFedCount = 0;
+    let tripVoiceToggle = false;
     let isPaused = false;
+    let gameStarted = false;
     let lastFrame = performance.now();
     let nextFoodId = 1;
     let spawnCooldown = 240;
+    let selectedDifficultyKey = "easy";
+    let currentPressureTier = 0;
+    let nextPressureGoal = difficultyProfiles[selectedDifficultyKey].feedGoalBase;
     const maxCats = 20;
     let audioContext;
     const houseBounds = {
@@ -300,6 +382,75 @@
       return Math.random() < probability;
     }
 
+    function getDifficultyProfile() {
+      return difficultyProfiles[selectedDifficultyKey];
+    }
+
+    function getCurrentSpawnRules() {
+      const profile = getDifficultyProfile();
+      return {
+        activeCap: Math.min(maxCats, profile.activeCapBase + currentPressureTier),
+        batchSize: Math.min(profile.maxBatch, profile.initialBatch + Math.floor(currentPressureTier / 2)),
+        spawnCooldown: Math.max(profile.spawnCooldownFloor, profile.spawnCooldownBase - currentPressureTier * profile.spawnCooldownStep)
+      };
+    }
+
+    function getNextPressureGoal() {
+      const profile = getDifficultyProfile();
+      return profile.feedGoalBase + currentPressureTier * profile.feedGoalGrowth;
+    }
+
+    function clearAllFood() {
+      while (foodDots.length > 0) {
+        const food = foodDots.pop();
+        food.element.remove();
+      }
+    }
+
+    function resetCatState(cat) {
+      cat.active = false;
+      cat.x = 50;
+      cat.y = 8;
+      cat.wanderAngle = Math.random() * Math.PI * 2;
+      cat.wanderTimer = 0;
+      cat.foodTargetId = null;
+      cat.satisfiedTimer = 0;
+      cat.contactCooldown = 0;
+      cat.sprayingTimer = 0;
+      cat.sprayCooldown = 420 + Math.random() * 240;
+    }
+
+    function resetAllCats() {
+      for (const cat of catStates) {
+        resetCatState(cat);
+      }
+      renderCats();
+      renderCatCounter();
+    }
+
+    function activateCat(cat, point) {
+      cat.active = true;
+      cat.x = point.x;
+      cat.y = point.y;
+      cat.wanderAngle = Math.random() * Math.PI * 2;
+      cat.wanderTimer = 60 + Math.random() * 45;
+      cat.foodTargetId = null;
+      cat.satisfiedTimer = 0;
+      cat.contactCooldown = 0;
+      cat.sprayingTimer = 0;
+      cat.sprayCooldown = 420 + Math.random() * 240;
+    }
+
+    function setStartScreenVisible(visible) {
+      startScreen.classList.toggle("is-hidden", !visible);
+    }
+
+    function updateSelectedDifficultyButtons() {
+      startButtons.forEach((button) => {
+        button.classList.toggle("is-selected", button.dataset.difficulty === selectedDifficultyKey);
+      });
+    }
+
     function ensureAudioContext() {
       if (!audioContext) {
         const AudioCtor = window.AudioContext || window.webkitAudioContext;
@@ -331,6 +482,51 @@
       gainNode.connect(ctx.destination);
       oscillator.start();
       oscillator.stop(ctx.currentTime + 0.15);
+    }
+
+    function playTripVoice() {
+      const ctx = ensureAudioContext();
+      if (!ctx) {
+        return;
+      }
+
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+
+      const pattern = tripVoiceToggle
+        ? [
+            { time: 0, freq: 520, gain: 0.05 },
+            { time: 0.09, freq: 430, gain: 0.045 },
+            { time: 0.18, freq: 610, gain: 0.038 }
+          ]
+        : [
+            { time: 0, freq: 460, gain: 0.055 },
+            { time: 0.08, freq: 570, gain: 0.05 },
+            { time: 0.16, freq: 390, gain: 0.038 }
+          ];
+
+      tripVoiceToggle = !tripVoiceToggle;
+
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      oscillator.type = "triangle";
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      const startTime = ctx.currentTime;
+      gainNode.gain.setValueAtTime(0.0001, startTime);
+
+      pattern.forEach((step, index) => {
+        const at = startTime + step.time;
+        oscillator.frequency.setValueAtTime(step.freq, at);
+        gainNode.gain.linearRampToValueAtTime(step.gain, at + 0.012);
+        const nextAt = index === pattern.length - 1 ? startTime + 0.31 : startTime + pattern[index + 1].time;
+        gainNode.gain.linearRampToValueAtTime(0.0001, nextAt);
+      });
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + 0.34);
     }
 
     function pickAlteredState() {
@@ -465,6 +661,11 @@
       }
     }
 
+    function renderCatCounter() {
+      const activeCats = catStates.filter((cat) => cat.active).length;
+      catCountText.textContent = `CATS ${activeCats}`;
+    }
+
     function renderScore() {
       scoreText.textContent = `${score}`.padStart(6, "0");
     }
@@ -472,6 +673,71 @@
     function addScore(points) {
       score += points;
       renderScore();
+    }
+
+    function updatePressureProgress() {
+      if (!gameStarted) {
+        return null;
+      }
+
+      let tierUps = 0;
+      while (catsFedCount >= nextPressureGoal) {
+        currentPressureTier += 1;
+        tierUps += 1;
+        nextPressureGoal += getNextPressureGoal();
+        const rules = getCurrentSpawnRules();
+        spawnCooldown = Math.min(spawnCooldown, rules.spawnCooldown);
+      }
+
+      if (tierUps === 0) {
+        return null;
+      }
+
+      return `${getDifficultyProfile().label} ramped up to pressure tier ${currentPressureTier + 1}. Cats can enter faster and in larger bursts.`;
+    }
+
+    function startGame(difficultyKey) {
+      selectedDifficultyKey = difficultyKey;
+      currentPressureTier = 0;
+      nextPressureGoal = getDifficultyProfile().feedGoalBase;
+      score = 0;
+      catsFedCount = 0;
+      nextFoodId = 1;
+      isPaused = false;
+      gameStarted = true;
+      pressedKeys.clear();
+      clearAllFood();
+      resetAllCats();
+      updateSelectedDifficultyButtons();
+
+      playerState.x = 47;
+      playerState.y = 65;
+      playerState.food = playerState.foodCapacity;
+      playerState.refilling = false;
+      playerState.refillProgress = 0;
+      playerState.hidden = false;
+      playerState.tripCount = 0;
+      playerState.trippedTimer = 0;
+      playerState.tripCooldown = 0;
+
+      const profile = getDifficultyProfile();
+      const startingPoints = initialCatPoints.slice(0, profile.startCats);
+      startingPoints.forEach((point, index) => {
+        const cat = catStates[index];
+        if (cat) {
+          activateCat(cat, point);
+        }
+      });
+
+      spawnCooldown = profile.spawnCooldownBase;
+      renderPlayer();
+      renderCats();
+      renderCatCounter();
+      renderFoodMeter();
+      renderScore();
+      renderTripCounter();
+      setStartScreenVisible(false);
+      statusText.textContent = `${profile.label} started with ${profile.startCats} cats in the yard. Feed ${nextPressureGoal} cats to raise the pressure.`;
     }
 
     function triggerSpray(targetKey) {
@@ -535,6 +801,7 @@
       cat.satisfiedTimer = Math.max(cat.satisfiedTimer, duration);
       cat.foodTargetId = null;
       renderCats();
+      renderCatCounter();
     }
 
     function removeFood(foodId) {
@@ -635,9 +902,10 @@
     function maybeSpawnCat(delta) {
       const activeCats = catStates.filter((cat) => cat.active).length;
       const hasSatisfiedCats = catStates.some((cat) => cat.active && cat.satisfiedTimer > 0);
+      const spawnRules = getCurrentSpawnRules();
 
-      if (!hasSatisfiedCats || activeCats >= maxCats) {
-        spawnCooldown = 240;
+      if (!hasSatisfiedCats || activeCats >= spawnRules.activeCap) {
+        spawnCooldown = spawnRules.spawnCooldown;
         return;
       }
 
@@ -646,23 +914,24 @@
         return;
       }
 
-      const nextCat = catStates.find((cat) => !cat.active);
-      if (!nextCat) {
+      const availableCats = catStates.filter((cat) => !cat.active);
+      if (availableCats.length === 0) {
         return;
       }
 
-      const spawnPoint = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
-      nextCat.active = true;
-      nextCat.x = spawnPoint.x;
-      nextCat.y = spawnPoint.y;
-      nextCat.wanderAngle = Math.random() * Math.PI * 2;
-      nextCat.wanderTimer = 60;
-      nextCat.foodTargetId = null;
-      nextCat.satisfiedTimer = 0;
-      nextCat.contactCooldown = 0;
-      spawnCooldown = 300;
+      const batchSize = Math.min(spawnRules.batchSize, spawnRules.activeCap - activeCats, availableCats.length);
+      for (let index = 0; index < batchSize; index += 1) {
+        const cat = availableCats[index];
+        const spawnPoint = spawnPoints[(Math.floor(Math.random() * spawnPoints.length) + index) % spawnPoints.length];
+        activateCat(cat, spawnPoint);
+      }
+
+      spawnCooldown = spawnRules.spawnCooldown;
       renderCats();
-      statusText.textContent = `Another cat entered the yard. Active cats: ${activeCats + 1}.`;
+      renderCatCounter();
+      statusText.textContent = batchSize > 1
+        ? `${batchSize} more cats jumped into the yard. Active cats: ${activeCats + batchSize}.`
+        : `Another cat entered the yard. Active cats: ${activeCats + 1}.`;
     }
 
     function updateCats(delta) {
@@ -826,9 +1095,11 @@
           for (const cat of food.fedCats) {
             satisfyCat(cat);
             addScore(scoring.catFed);
+            catsFedCount += 1;
           }
+          const pressureMessage = updatePressureProgress();
           removeFood(food.id);
-          statusText.textContent = "Cats ate the food and some are now satisfied.";
+          statusText.textContent = pressureMessage || "Cats ate the food and some are now satisfied.";
         }
       }
 
@@ -857,6 +1128,7 @@
           playerState.trippedTimer = 55;
           playerState.tripCooldown = 160;
           cat.contactCooldown = 180;
+          playTripVoice();
           renderTripCounter();
           renderPlayer();
           statusText.textContent = `Cat trip! Count is now ${playerState.tripCount}.`;
@@ -894,6 +1166,11 @@
       lastFrame = now;
 
       if (isPaused) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      if (!gameStarted) {
         requestAnimationFrame(step);
         return;
       }
@@ -980,8 +1257,17 @@
     document.addEventListener("keydown", (event) => {
       const key = event.key.toLowerCase();
 
-      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " ", "p"].includes(key)) {
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " ", "p", "1", "2", "3"].includes(key)) {
         event.preventDefault();
+      }
+
+      if (!gameStarted && !event.repeat && ["1", "2", "3"].includes(key)) {
+        startGame(key === "1" ? "easy" : key === "2" ? "medium" : "hard");
+        return;
+      }
+
+      if (!gameStarted) {
+        return;
       }
 
       if (key === "p" && !event.repeat) {
@@ -1006,12 +1292,20 @@
       pressedKeys.delete(event.key.toLowerCase());
     });
 
+    startButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        startGame(button.dataset.difficulty);
+      });
+    });
+
     createExtraCats();
     renderPlayer();
-    renderCats();
+    updateSelectedDifficultyButtons();
+    resetAllCats();
     renderFoodMeter();
     renderScore();
     renderTripCounter();
+    setStartScreenVisible(true);
     requestAnimationFrame(step);
   </script>
 </body>

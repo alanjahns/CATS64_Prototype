@@ -246,6 +246,127 @@ h1 {
   border: 4px solid var(--line);
 }
 
+.start-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
+  background:
+    linear-gradient(180deg, rgba(23, 17, 11, 0.36), rgba(23, 17, 11, 0.6)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035) 0 3px,
+      rgba(0, 0, 0, 0) 3px 6px
+    );
+  z-index: 8;
+}
+
+.start-screen.is-hidden {
+  display: none;
+}
+
+.start-screen-panel {
+  width: min(100%, 40rem);
+  padding: 1.2rem 1.1rem 1rem;
+  border: 4px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 248, 217, 0.96), rgba(234, 210, 153, 0.95)),
+    #f2deae;
+  box-shadow: 10px 10px 0 rgba(29, 24, 18, 0.3);
+  text-align: center;
+}
+
+.start-screen-kicker {
+  margin-bottom: 0.45rem;
+  color: #7d5b44;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.start-screen-panel h3 {
+  margin-bottom: 0.5rem;
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.start-screen-copy,
+.start-screen-note {
+  color: #5d4b3a;
+}
+
+.start-screen-copy {
+  margin: 0 auto 1rem;
+  max-width: 32rem;
+  line-height: 1.4;
+}
+
+.start-screen-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 0.8rem;
+}
+
+.start-button {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem 0.8rem;
+  border: 3px solid var(--line);
+  background: #fff4d7;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 5px 5px 0 rgba(72, 59, 46, 0.16);
+  transition: transform 110ms ease, box-shadow 110ms ease, background 110ms ease;
+}
+
+.start-button:hover,
+.start-button:focus-visible,
+.start-button.is-selected {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 rgba(72, 59, 46, 0.2);
+  outline: none;
+}
+
+.start-button-easy:hover,
+.start-button-easy:focus-visible,
+.start-button-easy.is-selected {
+  background: #eef6c9;
+}
+
+.start-button-medium:hover,
+.start-button-medium:focus-visible,
+.start-button-medium.is-selected {
+  background: #fde6b8;
+}
+
+.start-button-hard:hover,
+.start-button-hard:focus-visible,
+.start-button-hard.is-selected {
+  background: #f8c7aa;
+}
+
+.start-button-name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.start-button-detail {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.start-screen-note {
+  margin-bottom: 0;
+  font-size: 0.84rem;
+}
+
 .zone,
 .fence,
 .gate,
@@ -343,7 +464,7 @@ h1 {
 
 .fence-hud {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.35fr) auto minmax(0, 0.35fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.28fr) auto minmax(0, 0.24fr) auto minmax(0, 0.28fr) auto minmax(0, 1fr);
   align-items: center;
   width: 100%;
   height: 100%;
@@ -371,6 +492,7 @@ h1 {
 
 .fence-hud-score,
 .fence-hud-food,
+.fence-hud-cats,
 .fence-hud-lives {
   padding: 0 0.45rem;
   color: #fff8d6;
@@ -378,8 +500,14 @@ h1 {
 }
 
 .fence-hud-score,
+.fence-hud-cats,
 .fence-hud-lives {
   font-size: 1.22em;
+}
+
+.fence-hud-cats {
+  min-width: 4.8em;
+  text-align: center;
 }
 
 .fence-hud-food {
@@ -775,9 +903,13 @@ h1 {
     aspect-ratio: 3 / 4;
   }
 
+  .start-screen-buttons {
+    grid-template-columns: 1fr;
+  }
+
   .fence-hud {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.18fr) auto minmax(0, 0.18fr) auto minmax(0, 1fr);
-    font-size: 0.84rem;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.12fr) auto minmax(0, 0.1fr) auto minmax(0, 0.12fr) auto minmax(0, 1fr);
+    font-size: 0.76rem;
   }
 }
 
@@ -795,6 +927,14 @@ h1 {
     padding: 0.65rem;
   }
 
+  .start-screen {
+    padding: 0.75rem;
+  }
+
+  .start-screen-panel {
+    padding: 0.95rem 0.8rem 0.85rem;
+  }
+
   .legend {
     gap: 0.45rem;
   }
@@ -808,9 +948,9 @@ h1 {
   }
 
   .fence-hud {
-    grid-template-columns: minmax(0, 1fr) auto auto auto minmax(0, 0.8fr);
-    gap: 0.2rem;
-    font-size: 0.66rem;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto auto minmax(0, 0.8fr);
+    gap: 0.14rem;
+    font-size: 0.58rem;
     padding: 0 1%;
   }
 
@@ -819,6 +959,10 @@ h1 {
   }
 
   .fence-hud-posts-center-2 {
+    display: none;
+  }
+
+  .fence-hud-posts-center-3 {
     display: none;
   }
 }

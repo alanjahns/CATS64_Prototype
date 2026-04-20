@@ -25,6 +25,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 - Food can be placed to attract cats toward a target location
 - Cats path toward nearby food and bunch up around it
 - Placed food now ages through fresh, drying, and spoiled states instead of vanishing on a short timer
+- The run now begins from a start screen with `Easy`, `Medium`, and `Hard` starting pressure choices
 - Overcrowding can block movement, surround the player, or create risk
 - A cat can trip the feeder and spill food, causing sudden disorder
 - Additional cats appear over time, increasing yard pressure
@@ -87,11 +88,33 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 
 ### 5. Difficulty ramp
 
+- Start-screen difficulty choice that sets initial cat count and initial spawn burst size
 - Spawn rate over time
 - Ratio of friendly to feral cats
 - Increasing crowd density
 - Overlapping events creating higher stress
 - Balancing pressure so the game gets tense without becoming unreadable
+
+## Difficulty And Levels
+
+The browser prototype now treats difficulty in two layers:
+
+- Starting difficulty: `Easy`, `Medium`, or `Hard` sets the opening pressure of the yard.
+- Pressure tiers: the run ramps upward from that starting point as the player feeds more cats.
+
+Current intended rules:
+
+- `Easy` starts with 2 cats in play and new arrivals enter 1 at a time. Pressure rises after every 6 fed cats.
+- `Medium` starts with 3 cats in play and can send in up to 2 cats at once. Pressure rises after every 5 fed cats.
+- `Hard` starts with 4 cats in play and begins with 2-cat bursts right away. Pressure rises after every 4 fed cats.
+
+When the player hits the current feed target, the game does not jump to another named mode. Instead, it increases an internal pressure tier for that run:
+
+- active cat cap rises
+- cat entry bursts can get larger
+- spawn cooldown shortens
+
+That keeps `Easy` as a gentler starting curve, `Medium` as the default pressure curve, and `Hard` as a high-pressure opening, while all three still ramp over time.
 
 ## Prototype Goals
 
@@ -138,7 +161,7 @@ Once the design is proven, we can decide what gets ported directly, what gets si
 3. Add crowding and blocking behavior
 4. Add feeder trip or spill chaos events
 5. Add feral cats, traps, and a basic TNVR loop
-6. Add progression and difficulty ramping
+6. Add progression and difficulty ramping with a start screen, named opening difficulties, and rising pressure tiers tied to cats fed
 7. Identify the minimum fun version of the game
 8. Review the design against real C64 constraints
 9. Plan the eventual C64 implementation based on what proved fun
