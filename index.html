@@ -78,20 +78,20 @@
                 <h3>Choose Starting Pressure</h3>
                 <p class="start-screen-copy">
                   Pick a starting difficulty. Each mode begins with a different cat count and spawn burst,
-                  then ramps upward as you feed more cats.
+                  then ramps upward every time you earn another 100 points.
                 </p>
                 <div class="start-screen-buttons">
                   <button class="start-button start-button-easy" type="button" data-difficulty="easy">
                     <span class="start-button-name">Easy</span>
-                    <span class="start-button-detail">2 cats start, 1 jumps in at a time, pressure rises every 6 fed cats.</span>
+                    <span class="start-button-detail">2 cats start, 1 jumps in at a time, pressure rises every 100 points.</span>
                   </button>
                   <button class="start-button start-button-medium" type="button" data-difficulty="medium">
                     <span class="start-button-name">Medium</span>
-                    <span class="start-button-detail">3 cats start, up to 2 jump in, pressure rises every 5 fed cats.</span>
+                    <span class="start-button-detail">3 cats start, up to 2 jump in, pressure rises every 100 points.</span>
                   </button>
                   <button class="start-button start-button-hard" type="button" data-difficulty="hard">
                     <span class="start-button-name">Hard</span>
-                    <span class="start-button-detail">4 cats start, 2 jump in immediately, pressure rises every 4 fed cats.</span>
+                    <span class="start-button-detail">4 cats start, 2 jump in immediately, pressure rises every 100 points.</span>
                   </button>
                 </div>
                 <p class="start-screen-note">Keyboard shortcut: press <strong>1</strong>, <strong>2</strong>, or <strong>3</strong> to start.</p>
@@ -340,9 +340,7 @@
         activeCapBase: 5,
         spawnCooldownBase: 360,
         spawnCooldownFloor: 185,
-        spawnCooldownStep: 18,
-        feedGoalBase: 6,
-        feedGoalGrowth: 0
+        spawnCooldownStep: 18
       },
       medium: {
         label: "Medium",
@@ -352,9 +350,7 @@
         activeCapBase: 6,
         spawnCooldownBase: 310,
         spawnCooldownFloor: 150,
-        spawnCooldownStep: 20,
-        feedGoalBase: 5,
-        feedGoalGrowth: 0
+        spawnCooldownStep: 20
       },
       hard: {
         label: "Hard",
@@ -364,11 +360,10 @@
         activeCapBase: 7,
         spawnCooldownBase: 265,
         spawnCooldownFloor: 120,
-        spawnCooldownStep: 22,
-        feedGoalBase: 4,
-        feedGoalGrowth: 0
+        spawnCooldownStep: 22
       }
     };
+    const pointsPerPressureTier = 100;
     const foodAging = {
       freshToDry: 1200,
       dryToSpoiled: 1800,
@@ -383,7 +378,6 @@
       { x: 58, y: 82 }
     ];
     let score = 0;
-    let catsFedCount = 0;
     let tripVoiceToggle = false;
     let isPaused = false;
     let gameStarted = false;
@@ -392,7 +386,7 @@
     let spawnCooldown = 240;
     let selectedDifficultyKey = "easy";
     let currentPressureTier = 0;
-    let nextPressureGoal = difficultyProfiles[selectedDifficultyKey].feedGoalBase;
+    let nextPressureGoal = pointsPerPressureTier;
     const maxCats = 20;
     let audioContext;
     let levelUpAudio;
@@ -489,11 +483,6 @@
         batchSize: Math.min(profile.maxBatch, profile.initialBatch + Math.floor(currentPressureTier / 2)),
         spawnCooldown: Math.max(profile.spawnCooldownFloor, profile.spawnCooldownBase - currentPressureTier * profile.spawnCooldownStep)
       };
-    }
-
-    function getNextPressureGoal() {
-      const profile = getDifficultyProfile();
-      return profile.feedGoalBase + currentPressureTier * profile.feedGoalGrowth;
     }
 
     function clearAllFood() {
@@ -964,10 +953,10 @@
       }
 
       let tierUps = 0;
-      while (catsFedCount >= nextPressureGoal) {
+      while (score >= nextPressureGoal) {
         currentPressureTier += 1;
         tierUps += 1;
-        nextPressureGoal += getNextPressureGoal();
+        nextPressureGoal += pointsPerPressureTier;
         const rules = getCurrentSpawnRules();
         spawnCooldown = Math.min(spawnCooldown, rules.spawnCooldown);
       }
@@ -987,9 +976,8 @@
     function startGame(difficultyKey) {
       selectedDifficultyKey = difficultyKey;
       currentPressureTier = 0;
-      nextPressureGoal = getDifficultyProfile().feedGoalBase;
+      nextPressureGoal = pointsPerPressureTier;
       score = 0;
-      catsFedCount = 0;
       nextFoodId = 1;
       isPaused = false;
       gameStarted = true;
@@ -1036,7 +1024,7 @@
       renderFightMarker();
       renderPeacemakerFlash();
       setStartScreenVisible(false);
-      statusText.textContent = `${profile.label} started with ${profile.startCats} cats in the yard. Feed ${nextPressureGoal} cats to raise the pressure.`;
+      statusText.textContent = `${profile.label} started with ${profile.startCats} cats in the yard. Reach ${nextPressureGoal} points to raise the pressure.`;
     }
 
     function triggerSpray(targetKey) {
@@ -1432,7 +1420,6 @@
           for (const cat of food.fedCats) {
             satisfyCat(cat);
             addScore(scoring.catFed);
-            catsFedCount += 1;
           }
           const pressureMessage = updatePressureProgress();
           removeFood(food.id);

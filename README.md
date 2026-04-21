@@ -101,15 +101,15 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 The browser prototype now treats difficulty in two layers:
 
 - Starting difficulty: `Easy`, `Medium`, or `Hard` sets the opening pressure of the yard.
-- Pressure tiers: the run ramps upward from that starting point as the player feeds more cats.
+- Pressure tiers: the run ramps upward from that starting point every time the player earns another 100 points.
 
 Current intended rules:
 
-- `Easy` starts with 2 cats in play and new arrivals enter 1 at a time. Pressure rises after every 6 fed cats.
-- `Medium` starts with 3 cats in play and can send in up to 2 cats at once. Pressure rises after every 5 fed cats.
-- `Hard` starts with 4 cats in play and begins with 2-cat bursts right away. Pressure rises after every 4 fed cats.
+- `Easy` starts with 2 cats in play and new arrivals enter 1 at a time. Pressure rises every 100 points.
+- `Medium` starts with 3 cats in play and can send in up to 2 cats at once. Pressure rises every 100 points.
+- `Hard` starts with 4 cats in play and begins with 2-cat bursts right away. Pressure rises every 100 points.
 
-When the player hits the current feed target, the game does not jump to another named mode. Instead, it increases an internal pressure tier for that run:
+When the player hits the current point target, the game does not jump to another named mode. Instead, it increases an internal pressure tier for that run:
 
 - active cat cap rises
 - cat entry bursts can get larger
