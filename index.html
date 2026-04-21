@@ -28,7 +28,7 @@
       </section>
     </header>
 
-    <section class="playfield-panel">
+    <section class="playfield-panel" id="playfieldPanel">
       <div class="panel-head">
         <div>
           <p class="panel-label">Prototype View</p>
@@ -44,7 +44,7 @@
       <section class="controls-bar">
         <div class="controls-card">
           <strong>Controls</strong>
-          <p>`WASD` or arrow keys to move. Press `Space` to drop food and `P` to pause.</p>
+          <p>`WASD` or arrow keys to move. Press `Space` to drop food, `P` to pause, and `F` for fullscreen.</p>
         </div>
         <div class="controls-card">
           <strong>Status</strong>
@@ -69,7 +69,7 @@
       </section>
 
       <div class="playfield-layout">
-        <div class="yard-frame">
+        <div class="yard-frame" id="yardFrame">
         <div class="yard-grid" aria-label="Top-down fenced yard prototype">
           <div class="yard" id="yard">
             <div class="start-screen" id="startScreen">
@@ -195,6 +195,7 @@
               <li>If a cat trips you, half your carried food rolls away and your trip count rises.</li>
               <li>Go back through the house door when supplies run low to refill to 10 food.</li>
               <li>Press `P` any time to pause the run.</li>
+              <li>Press `F` to enter fullscreen. Press `ESC` to leave it.</li>
             </ul>
           </div>
           <div class="rules-card">
@@ -298,6 +299,7 @@
     const levelText = document.getElementById("levelText");
     const livesText = document.getElementById("livesText");
     const fightMarker = document.getElementById("fightMarker");
+    const yardFrame = document.getElementById("yardFrame");
     const peacemakerFlash = document.getElementById("peacemakerFlash");
     const peacemakerFlashMain = peacemakerFlash.querySelector(".peacemaker-flash-main");
     const peacemakerFlashPoints = peacemakerFlash.querySelector(".peacemaker-flash-points");
@@ -1577,6 +1579,25 @@
         : "Resumed. Press Space to drop food or keep moving.";
     }
 
+    async function toggleFullscreen() {
+      if (!document.fullscreenEnabled) {
+        statusText.textContent = "Fullscreen is not available in this browser.";
+        return;
+      }
+
+      try {
+        if (document.fullscreenElement === yardFrame) {
+          await document.exitFullscreen();
+          statusText.textContent = "Exited yard fullscreen.";
+        } else {
+          await yardFrame.requestFullscreen();
+          statusText.textContent = "Entered yard fullscreen. Press ESC to leave.";
+        }
+      } catch (error) {
+        statusText.textContent = "Fullscreen request was blocked by the browser.";
+      }
+    }
+
     function step(now) {
       const delta = Math.min((now - lastFrame) / 16.67, 2);
       lastFrame = now;
@@ -1686,8 +1707,13 @@
     document.addEventListener("keydown", (event) => {
       const key = event.key.toLowerCase();
 
-      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " ", "p", "1", "2", "3"].includes(key)) {
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " ", "p", "f", "1", "2", "3"].includes(key)) {
         event.preventDefault();
+      }
+
+      if (key === "f" && !event.repeat) {
+        toggleFullscreen();
+        return;
       }
 
       if (!gameStarted && !event.repeat && ["1", "2", "3"].includes(key)) {
