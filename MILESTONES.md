@@ -19,3 +19,6 @@
 17. IN PROGRESS 5/10 - Build a minimum fun playable prototype that demonstrates the full core loop.
 18. IN PROGRESS 3/10 - Establish an audio asset pipeline with placeholder effects now and real replacement sound files later.
 19. IN PROGRESS 5/10 - Prototype bonus scoring events such as herding rewards and a `Peacemaker` fight-breakup opportunity with a limited response window.
+20. TODO - Add fullscreen support that enters on a key press and exits on `ESC`, using browser-safe fullscreen behavior.
+21. TODO - Add a `Rosie` chaos event where the neighbor dog enters through a fence hole, scatters most cats, and leaves after greeting the player. Keep Rosie out of the first two levels.
+22. TODO - Add calendar-based holiday easter eggs driven by the player's local browser date, such as more black cats on October 31 and occasional seasonal fly-bys.

@@ -126,6 +126,12 @@ Current prototype note:
 
 - `Peacemaker` is now implemented as a first-pass scoring event worth 50 points. A visible cat fight can break out, it makes a noticeable sound, and dropping food near the fight in time shows a one-second `PEACEMAKER +050` reward flash.
 
+## Planned Future Events And Presentation
+
+- Fullscreen mode: the browser prototype can support entering fullscreen from a user key press and leaving with `ESC`. This should be treated as a browser-safe toggle using the Fullscreen API, which normally requires direct user input to enter.
+- `Rosie` chaos event: the neighbor dog can enter the yard through a hole in the fence as a disruption event. Most cats should scatter away from her, which can break up a herding setup, but in lighter cases she may behave more like a brief distraction. Rosie herself is friendly and should leave once she reaches the player for a hello. Design note: do not allow Rosie to appear in the first two levels.
+- Holiday easter eggs: the browser version can read the player's local device date through JavaScript and use it for seasonal variations. Example ideas include more black cats on October 31 and a random pumpkin fly-by. This is best treated as a playful local-calendar feature rather than a secure server-side event system.
+
 ## Prototype Goals
 
 The first prototype is not meant to look like a finished C64 game. It is meant to answer the following questions:
