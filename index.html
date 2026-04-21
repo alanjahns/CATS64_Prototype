@@ -189,6 +189,7 @@
             <ul class="rules-list">
               <li>Move with `WASD` or the arrow keys.</li>
               <li>Press `Space` to drop one serving of food.</li>
+              <li>The slab beside the house is the herding zone. Cluster feeding there can trigger a bonus.</li>
               <li>Fresh food pulls cats in quickly. Old food becomes weaker as it dries and spoils.</li>
               <li>Fed cats become satisfied for a while and stop crowding you so aggressively.</li>
               <li>If a cat trips you, half your carried food rolls away and your trip count rises.</li>
@@ -202,6 +203,7 @@
             <ul class="rules-list">
               <li>Feed a cat: `+10`</li>
               <li>Peacemaker event: `+50`</li>
+              <li>Cat Herder event: `+100`</li>
               <li>Future TNVR reward target: `+100`</li>
             </ul>
           </div>
@@ -297,6 +299,8 @@
     const livesText = document.getElementById("livesText");
     const fightMarker = document.getElementById("fightMarker");
     const peacemakerFlash = document.getElementById("peacemakerFlash");
+    const peacemakerFlashMain = peacemakerFlash.querySelector(".peacemaker-flash-main");
+    const peacemakerFlashPoints = peacemakerFlash.querySelector(".peacemaker-flash-points");
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
     const startScreen = document.getElementById("startScreen");
@@ -329,7 +333,8 @@
     const scoring = {
       catFed: 10,
       catFixed: 50,
-      peacemaker: 50
+      peacemaker: 50,
+      catHerder: 100
     };
     const difficultyProfiles = {
       easy: {
@@ -387,6 +392,7 @@
     let selectedDifficultyKey = "easy";
     let currentPressureTier = 0;
     let nextPressureGoal = pointsPerPressureTier;
+    let elapsedFrames = 0;
     const maxCats = 20;
     let audioContext;
     let levelUpAudio;
@@ -401,6 +407,14 @@
       markerY: 50,
       flashTimer: 0
     };
+    const herderState = {
+      feedFrames: [],
+      rewardThresholds: {
+        easy: 3,
+        medium: 5,
+        hard: 7
+      }
+    };
     const houseBounds = {
       left: 31,
       right: 69,
@@ -412,6 +426,12 @@
       right: 56.5,
       top: 29.5,
       bottom: 37.5
+    };
+    const feedingSlabBounds = {
+      left: 16,
+      right: 34,
+      top: 34,
+      bottom: 64
     };
     const spawnPoints = [
       { x: 50, y: 8 },
@@ -858,10 +878,40 @@
       renderCats();
     }
 
-    function showPeacemakerFlash() {
-      peacemakerFlash.querySelector(".peacemaker-flash-points").textContent = `+${String(scoring.peacemaker).padStart(3, "0")}`;
+    function showEventFlash(label, points) {
+      peacemakerFlashMain.textContent = label;
+      peacemakerFlashPoints.textContent = `+${String(points).padStart(3, "0")}`;
       fightState.flashTimer = 120;
       renderPeacemakerFlash();
+    }
+
+    function showPeacemakerFlash() {
+      showEventFlash("PEACEMAKER", scoring.peacemaker);
+    }
+
+    function isInsideFeedingSlab(x, y) {
+      return overlapsRect(x, y, feedingSlabBounds, 0);
+    }
+
+    function registerSlabFeed(feedCount) {
+      if (feedCount <= 0) {
+        return false;
+      }
+
+      const threshold = herderState.rewardThresholds[selectedDifficultyKey];
+      for (let index = 0; index < feedCount; index += 1) {
+        herderState.feedFrames.push(elapsedFrames);
+      }
+
+      herderState.feedFrames = herderState.feedFrames.filter((frame) => elapsedFrames - frame <= 120);
+      if (herderState.feedFrames.length < threshold) {
+        return false;
+      }
+
+      herderState.feedFrames = [];
+      addScore(scoring.catHerder);
+      showEventFlash("CAT HERDER", scoring.catHerder);
+      return true;
     }
 
     function updateFightMidpoint() {
@@ -977,6 +1027,7 @@
       selectedDifficultyKey = difficultyKey;
       currentPressureTier = 0;
       nextPressureGoal = pointsPerPressureTier;
+      elapsedFrames = 0;
       score = 0;
       nextFoodId = 1;
       isPaused = false;
@@ -990,6 +1041,7 @@
       fightState.cooldown = 240;
       fightState.soundPulseTimer = 0;
       fightState.flashTimer = 0;
+      herderState.feedFrames = [];
       resetAllCats();
       updateSelectedDifficultyButtons();
 
@@ -1421,9 +1473,14 @@
             satisfyCat(cat);
             addScore(scoring.catFed);
           }
+          const herderTriggered = isInsideFeedingSlab(food.x, food.y)
+            ? registerSlabFeed(food.fedCats.size)
+            : false;
           const pressureMessage = updatePressureProgress();
           removeFood(food.id);
-          statusText.textContent = pressureMessage || "Cats ate the food and some are now satisfied.";
+          statusText.textContent = herderTriggered
+            ? `CAT HERDER +${String(scoring.catHerder).padStart(3, "0")}`
+            : pressureMessage || "Cats ate the food and some are now satisfied.";
         }
       }
 
@@ -1433,6 +1490,10 @@
 
     function checkPlayerTrips() {
       if (playerState.refilling || playerState.hidden || playerState.tripCooldown > 0) {
+        return;
+      }
+
+      if (fightState.active && distance(playerState.x, playerState.y, fightState.markerX, fightState.markerY) < 9.5) {
         return;
       }
 
@@ -1473,6 +1534,29 @@
       return Math.abs(playerState.x - 50) < 4.5 && Math.abs(playerState.y - 33.5) < 5.5;
     }
 
+    function clearDoorwayAfterRefill() {
+      const doorwayCenterX = (doorwayBounds.left + doorwayBounds.right) / 2;
+      const doorwayCenterY = (doorwayBounds.top + doorwayBounds.bottom) / 2;
+
+      for (const cat of catStates) {
+        if (!cat.active || isFightCat(cat)) {
+          continue;
+        }
+
+        const gap = distance(cat.x, cat.y, doorwayCenterX, doorwayCenterY);
+        if (gap > 8.5) {
+          continue;
+        }
+
+        const offsetX = cat.x - doorwayCenterX;
+        const offsetY = cat.y - doorwayCenterY;
+        const length = Math.hypot(offsetX, offsetY) || 1;
+        cat.x = clamp(doorwayCenterX + (offsetX / length) * 9.5, 7, 92);
+        cat.y = clamp(doorwayCenterY + (offsetY / length) * 9.5, 7, 92);
+        cat.contactCooldown = Math.max(cat.contactCooldown, 120);
+      }
+    }
+
     function startRefill() {
       if (playerState.refilling || playerState.food === playerState.foodCapacity) {
         return;
@@ -1496,6 +1580,7 @@
     function step(now) {
       const delta = Math.min((now - lastFrame) / 16.67, 2);
       lastFrame = now;
+      elapsedFrames += delta;
 
       if (isPaused) {
         requestAnimationFrame(step);
@@ -1531,7 +1616,10 @@
           playerState.hidden = false;
           playerState.x = 47;
           playerState.y = 27;
+          playerState.tripCooldown = 120;
+          clearDoorwayAfterRefill();
           renderPlayer();
+          renderCats();
           renderFoodMeter();
           statusText.textContent = "Food restocked. Player returned to the yard.";
         }

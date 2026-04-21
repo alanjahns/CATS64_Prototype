@@ -657,10 +657,10 @@ h1 {
 }
 
 .feeding-slab {
-  left: 18%;
-  top: 38%;
-  width: 12%;
-  height: 22%;
+  left: 17%;
+  top: 36%;
+  width: 15%;
+  height: 26%;
   color: #544a40;
   background:
     linear-gradient(180deg, #dad3c7 0%, #b8b1a3 100%);
@@ -686,17 +686,17 @@ h1 {
 
 .feeding-plate-a {
   left: 20.5%;
-  top: 42%;
+  top: 41%;
 }
 
 .feeding-plate-b {
-  left: 27%;
-  top: 48%;
+  left: 28%;
+  top: 49%;
 }
 
 .feeding-plate-c {
-  left: 21.5%;
-  top: 55%;
+  left: 22%;
+  top: 58%;
 }
 
 .crate {
