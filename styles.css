@@ -594,7 +594,7 @@ h1 {
   content: "";
   position: absolute;
   left: -4%;
-  top: -18%;
+  bottom: -18%;
   width: 108%;
   height: 24%;
   background: var(--house-roof);
@@ -603,7 +603,7 @@ h1 {
 
 .doorway {
   left: 45.5%;
-  top: 54.5%;
+  top: 29.5%;
   width: 11%;
   height: 8%;
   color: #f7f0de;
@@ -619,18 +619,18 @@ h1 {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -34%;
+  top: -34%;
   width: 0;
   height: 0;
   transform: translateX(-50%);
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-top: 12px solid #fff6df;
+  border-bottom: 12px solid #fff6df;
 }
 
 .shed {
-  left: 9%;
-  top: 11%;
+  left: 78%;
+  top: 8%;
   width: 13%;
   height: 13%;
   background: linear-gradient(180deg, var(--shed) 0%, #b55634 100%);
@@ -656,6 +656,49 @@ h1 {
   background: linear-gradient(180deg, #71b5e5 0%, var(--water) 100%);
 }
 
+.feeding-slab {
+  left: 18%;
+  top: 38%;
+  width: 12%;
+  height: 22%;
+  color: #544a40;
+  background:
+    linear-gradient(180deg, #dad3c7 0%, #b8b1a3 100%);
+}
+
+.feeding-slab span {
+  font-size: clamp(0.48rem, 0.9vw, 0.72rem);
+}
+
+.feeding-plate {
+  width: 4.6%;
+  height: 4.6%;
+  border-radius: 50%;
+  color: transparent;
+  background:
+    radial-gradient(circle at 35% 35%, #fffdf8 0%, #ede7d9 72%, #bbb09d 100%);
+  box-shadow: 4px 4px 0 rgba(29, 24, 18, 0.12);
+}
+
+.feeding-plate span {
+  font-size: 0;
+}
+
+.feeding-plate-a {
+  left: 20.5%;
+  top: 42%;
+}
+
+.feeding-plate-b {
+  left: 27%;
+  top: 48%;
+}
+
+.feeding-plate-c {
+  left: 21.5%;
+  top: 55%;
+}
+
 .crate {
   width: 11%;
   height: 10%;
@@ -668,8 +711,8 @@ h1 {
 }
 
 .tree {
-  left: 14%;
-  top: 56%;
+  left: 8%;
+  top: 8%;
   width: 14%;
   height: 18%;
   border-radius: 50%;
@@ -959,13 +1002,13 @@ h1 {
 }
 
 .spray-tree {
-  left: 20%;
-  top: 61%;
+  left: 14%;
+  top: 17%;
 }
 
 .spray-shed {
-  left: 15%;
-  top: 23%;
+  left: 84%;
+  top: 16%;
 }
 
 .qa-panel {

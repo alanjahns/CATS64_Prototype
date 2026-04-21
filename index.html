@@ -147,6 +147,18 @@
             <div class="object water" aria-label="Water bowl">
               <span>Water</span>
             </div>
+            <div class="object feeding-slab" aria-label="Feeding slab">
+              <span>Slab</span>
+            </div>
+            <div class="object feeding-plate feeding-plate-a" aria-label="Plate">
+              <span>Plate</span>
+            </div>
+            <div class="object feeding-plate feeding-plate-b" aria-label="Plate">
+              <span>Plate</span>
+            </div>
+            <div class="object feeding-plate feeding-plate-c" aria-label="Plate">
+              <span>Plate</span>
+            </div>
             <div class="object crate crate-b" aria-label="Supplies crate">
               <span>Crate</span>
             </div>
@@ -404,8 +416,8 @@
     const doorwayBounds = {
       left: 45.5,
       right: 56.5,
-      top: 54.5,
-      bottom: 62.5
+      top: 29.5,
+      bottom: 37.5
     };
     const spawnPoints = [
       { x: 50, y: 8 },
@@ -414,8 +426,8 @@
       { x: 8, y: 78 }
     ];
     const sprayTargets = [
-      { key: "shed", x: 16, y: 19 },
-      { key: "tree", x: 19, y: 63 }
+      { key: "shed", x: 82, y: 16 },
+      { key: "tree", x: 14, y: 17 }
     ];
     const catSpritePalette = window.CATS64SpriteAssets.catPalette;
     const catSpritePixels = window.CATS64SpriteAssets.catPixels;
@@ -994,7 +1006,7 @@
       updateSelectedDifficultyButtons();
 
       playerState.x = 47;
-      playerState.y = 65;
+      playerState.y = 27;
       playerState.facing = "right";
       playerState.food = playerState.foodCapacity;
       playerState.refilling = false;
@@ -1471,7 +1483,7 @@
     }
 
     function nearDoorway() {
-      return Math.abs(playerState.x - 50) < 4.5 && Math.abs(playerState.y - 58.5) < 5.5;
+      return Math.abs(playerState.x - 50) < 4.5 && Math.abs(playerState.y - 33.5) < 5.5;
     }
 
     function startRefill() {
@@ -1531,7 +1543,7 @@
           playerState.refilling = false;
           playerState.hidden = false;
           playerState.x = 47;
-          playerState.y = 65;
+          playerState.y = 27;
           renderPlayer();
           renderFoodMeter();
           statusText.textContent = "Food restocked. Player returned to the yard.";
