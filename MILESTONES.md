@@ -11,8 +11,8 @@
 9. IN PROGRESS 4/10 - Prototype crowding pressure so groups of cats can obstruct movement or create hazards.
 10. TODO - Add a feeder trip or spilled food chaos event.
 11. IN PROGRESS 4/10 - Differentiate friendly cats and feral cats with at least one gameplay-relevant behavior difference.
-12. TODO - Add trap placement and basic feral cat capture behavior.
-13. TODO - Add a basic TNVR processing and release loop.
+12. IN PROGRESS 7/10 - Add trap placement and basic feral cat capture behavior.
+13. IN PROGRESS 3/10 - Add a basic TNVR processing and release loop.
 14. TODO - Add an ear-tipped state for processed cats.
 15. IN PROGRESS 6/10 - Add a difficulty ramp with a start screen, named starting difficulties, and increased cat pressure over time based on cats fed.
 16. IN PROGRESS 4/10 - Define and test temporary success and failure conditions for a playable prototype loop.

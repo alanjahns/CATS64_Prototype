@@ -753,11 +753,56 @@ h1 {
   width: 11%;
   height: 10%;
   background: linear-gradient(180deg, #c29155 0%, var(--crate) 100%);
+  overflow: visible;
+  transform-style: preserve-3d;
 }
 
 .crate-b {
   left: 72%;
   top: 72%;
+}
+
+.crate::before {
+  content: "";
+  position: absolute;
+  left: 18%;
+  top: 28%;
+  width: 64%;
+  height: 18%;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 40%, #f2c470 0%, #d59142 75%, transparent 78%);
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.crate::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  top: -6%;
+  width: 84%;
+  height: 26%;
+  border: 3px solid var(--line);
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(180deg, #ddb27a 0%, #b27a41 100%);
+  transform-origin: top center;
+  transform: perspective(90px) rotateX(62deg);
+  transition: transform 170ms ease, background 120ms ease;
+}
+
+.crate.is-baited::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.crate.is-closed::after {
+  transform: perspective(90px) rotateX(0deg) translateY(48%);
+  background: linear-gradient(180deg, #c6884a 0%, #8f5b2f 100%);
+}
+
+.crate.is-processing {
+  filter: saturate(0.82) brightness(0.96);
 }
 
 .tree {

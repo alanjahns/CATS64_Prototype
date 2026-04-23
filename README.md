@@ -86,6 +86,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 - Processing flow
 - Return or release state
 - Ear-tip visual state and persistent identity for handled cats
+- Current prototype pass: the player can bait the trap crate with food, ear-tipped cats can still spring it by mistake, and a successful TNVR capture is worth `+500`
 
 ### 5. Difficulty ramp
 

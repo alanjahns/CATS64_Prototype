@@ -167,8 +167,8 @@
             <div class="object feeding-plate feeding-plate-c" aria-label="Plate">
               <span>Plate</span>
             </div>
-            <div class="object crate crate-b" aria-label="Supplies crate">
-              <span>Crate</span>
+            <div class="object crate crate-b" id="trapCrate" aria-label="Trap crate">
+              <span>Trap</span>
             </div>
             <div class="object tree" aria-label="Tree">
               <span>Tree</span>
@@ -199,13 +199,14 @@
             <h3>Yard Rules</h3>
             <ul class="rules-list">
               <li>Move with `WASD` or the arrow keys.</li>
-              <li>Press `Space` to drop one serving of food.</li>
+              <li>Press `Space` to drop one serving of food, or bait the trap when standing by it.</li>
               <li>The slab beside the house is the herding zone. Cluster feeding there can trigger a bonus.</li>
               <li>Fresh food pulls cats in quickly. Old food becomes weaker as it dries and spoils.</li>
               <li>Fed cats become satisfied for a while and stop crowding you so aggressively.</li>
               <li>If a cat trips you, half your carried food rolls away and your trip count rises.</li>
               <li>Go back through the house door when supplies run low to refill to 10 food.</li>
               <li>From level 3 onward, Rosie may burst in through the fence and scatter the yard until you greet her.</li>
+              <li>Ear-tipped cats can still stumble into the trap, so watch who is already hovering near it.</li>
               <li>Press `P` any time to pause the run.</li>
               <li>Press `F` to enter fullscreen. Press `ESC` to leave it.</li>
             </ul>
@@ -217,7 +218,7 @@
               <li>Feed a cat: `+10`</li>
               <li>Peacemaker event: `+50`</li>
               <li>Cat Herder event: `+100`</li>
-              <li>Future TNVR reward target: `+100`</li>
+              <li>Successful TNVR trap capture: `+500`</li>
             </ul>
           </div>
           <div class="rules-card">
@@ -266,7 +267,7 @@
           </article>
           <article class="legend-item">
             <strong>Crate</strong>
-            <p>Placeholder supply or trap staging object that can later become a movement obstacle.</p>
+            <p>Active trap crate. You can bait it, spring it on the wrong cat, or land a TNVR capture.</p>
           </article>
           <article class="legend-item">
             <strong>Tree</strong>
@@ -306,6 +307,7 @@
     const rosieSpriteCanvas = document.getElementById("rosieSpriteCanvas");
     const rosieSpriteContext = rosieSpriteCanvas.getContext("2d");
     const rosieDevToggle = document.getElementById("rosieDevToggle");
+    const trapCrate = document.getElementById("trapCrate");
     const statusText = document.getElementById("statusText");
     const foodMeterFill = document.getElementById("foodMeterFill");
     const foodMeterText = document.getElementById("foodMeterText");
@@ -328,9 +330,9 @@
       shed: document.getElementById("sprayShed")
     };
     const catStates = [
-      { element: document.getElementById("catA"), canvas: document.querySelector("#catA .cat-sprite"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: false, sex: "male", sprayingTimer: 0, sprayCooldown: 420, rosieSkittish: true, variant: "orange" },
-      { element: document.getElementById("catB"), canvas: document.querySelector("#catB .cat-sprite"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: true, sex: "female", sprayingTimer: 0, sprayCooldown: 420, rosieSkittish: true, variant: "tan" },
-      { element: document.getElementById("catC"), canvas: document.querySelector("#catC .cat-sprite"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: false, sex: "female", sprayingTimer: 0, sprayCooldown: 420, rosieSkittish: true, variant: "dark" }
+      { element: document.getElementById("catA"), canvas: document.querySelector("#catA .cat-sprite"), x: 22, y: 37, speed: 0.12, wanderAngle: 0.35, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: false, sex: "male", sprayingTimer: 0, sprayCooldown: 420, trapFocusTimer: 0, inTrap: false, rosieSkittish: true, variant: "orange" },
+      { element: document.getElementById("catB"), canvas: document.querySelector("#catB .cat-sprite"), x: 26, y: 47, speed: 0.1, wanderAngle: 1.9, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: true, sex: "female", sprayingTimer: 0, sprayCooldown: 420, trapFocusTimer: 0, inTrap: false, rosieSkittish: true, variant: "tan" },
+      { element: document.getElementById("catC"), canvas: document.querySelector("#catC .cat-sprite"), x: 72, y: 38, speed: 0.115, wanderAngle: 3.4, wanderTimer: 0, foodTargetId: null, satisfiedTimer: 0, contactCooldown: 0, active: false, altered: false, sex: "female", sprayingTimer: 0, sprayCooldown: 420, trapFocusTimer: 0, inTrap: false, rosieSkittish: true, variant: "dark" }
     ];
     const foodDots = [];
     const pressedKeys = new Set();
@@ -350,7 +352,7 @@
     };
     const scoring = {
       catFed: 10,
-      catFixed: 50,
+      tnvr: 500,
       peacemaker: 50,
       catHerder: 100
     };
@@ -447,6 +449,11 @@
       distractionRadius: 30,
       helloRadius: 5.4
     };
+    const trapState = {
+      mode: "idle",
+      trappedCat: null,
+      resolveTimer: 0
+    };
     const houseBounds = {
       left: 31,
       right: 69,
@@ -464,6 +471,12 @@
       right: 34,
       top: 34,
       bottom: 64
+    };
+    const trapBounds = {
+      left: 72,
+      right: 83,
+      top: 72,
+      bottom: 82
     };
     const spawnPoints = [
       { x: 50, y: 8 },
@@ -557,6 +570,8 @@
       cat.fightCooldown = 0;
       cat.sprayingTimer = 0;
       cat.sprayCooldown = 420 + Math.random() * 240;
+      cat.trapFocusTimer = 0;
+      cat.inTrap = false;
       cat.rosieSkittish = chance(0.78);
     }
 
@@ -580,6 +595,8 @@
       cat.fightCooldown = 0;
       cat.sprayingTimer = 0;
       cat.sprayCooldown = 420 + Math.random() * 240;
+      cat.trapFocusTimer = 0;
+      cat.inTrap = false;
       cat.rosieSkittish = chance(0.78);
     }
 
@@ -759,6 +776,8 @@
           sex: pickSex(),
           sprayingTimer: 0,
           sprayCooldown: 420 + Math.random() * 240,
+          trapFocusTimer: 0,
+          inTrap: false,
           rosieSkittish: chance(0.78),
           variant: variants[index % variants.length]
         });
@@ -820,6 +839,144 @@
       rosieMarker.style.left = `${rosieState.x}%`;
       rosieMarker.style.top = `${rosieState.y}%`;
       drawSpriteToCanvas(rosieSpriteCanvas, rosieSpriteContext, rosieSprite);
+    }
+
+    function renderTrap() {
+      trapCrate.classList.toggle("is-baited", trapState.mode === "baited");
+      trapCrate.classList.toggle("is-closed", trapState.mode === "occupied_altered" || trapState.mode === "occupied_feral");
+      trapCrate.classList.toggle("is-processing", trapState.mode === "occupied_feral");
+    }
+
+    function getTrapCenter() {
+      return {
+        x: (trapBounds.left + trapBounds.right) / 2,
+        y: (trapBounds.top + trapBounds.bottom) / 2
+      };
+    }
+
+    function nearTrap() {
+      const trapCenter = getTrapCenter();
+      return distance(playerState.x, playerState.y, trapCenter.x, trapCenter.y) < 8;
+    }
+
+    function resetTrap() {
+      trapState.mode = "idle";
+      trapState.trappedCat = null;
+      trapState.resolveTimer = 0;
+      renderTrap();
+    }
+
+    function releaseTrapCat() {
+      if (!trapState.trappedCat) {
+        resetTrap();
+        return;
+      }
+
+      const cat = trapState.trappedCat;
+      const trapCenter = getTrapCenter();
+      activateCat(cat, {
+        x: clamp(trapCenter.x - 4.5, 7, 92),
+        y: clamp(trapCenter.y + 4.5, 7, 92)
+      });
+      cat.altered = true;
+      cat.contactCooldown = 180;
+      satisfyCat(cat, 840);
+      trapState.trappedCat = null;
+      trapState.mode = "idle";
+      trapState.resolveTimer = 0;
+      renderTrap();
+      renderCats();
+      renderCatCounter();
+    }
+
+    function baitTrap() {
+      if (trapState.mode !== "idle") {
+        return false;
+      }
+      if (playerState.food <= 0) {
+        statusText.textContent = "Out of food. You need one serving to bait the trap.";
+        return true;
+      }
+
+      playerState.food -= 1;
+      trapState.mode = "baited";
+      trapState.trappedCat = null;
+      trapState.resolveTimer = 0;
+      renderFoodMeter();
+      renderTrap();
+      statusText.textContent = "Trap baited. Lead the right cat toward it.";
+      return true;
+    }
+
+    function triggerTrap(cat) {
+      if (trapState.mode !== "baited") {
+        return false;
+      }
+
+      trapState.trappedCat = cat;
+      trapState.mode = cat.altered ? "occupied_altered" : "occupied_feral";
+      trapState.resolveTimer = cat.altered ? 0 : 150;
+      cat.inTrap = true;
+      cat.active = false;
+      cat.foodTargetId = null;
+      cat.trapFocusTimer = 0;
+      addScore(scoring.catFed);
+      updatePressureProgress();
+
+      if (cat.altered) {
+        statusText.textContent = "An ear-tipped cat got into the trap. Walk over and let it back out.";
+      } else {
+        cat.altered = true;
+        addScore(scoring.tnvr);
+        updatePressureProgress();
+        showEventFlash("TNVR", scoring.tnvr);
+        statusText.textContent = "TNVR capture! Vet-trip animation pass comes next.";
+      }
+
+      renderTrap();
+      renderCats();
+      renderCatCounter();
+      return true;
+    }
+
+    function getTrapPullChance(cat, trapDistance, delta) {
+      if (trapState.mode !== "baited" || cat.satisfiedTimer > 0 || cat.sprayingTimer > 0 || isFightCat(cat)) {
+        return 0;
+      }
+
+      if (trapDistance > 28) {
+        return 0;
+      }
+
+      const base = cat.altered ? 0.0064 : 0.0084;
+      const proximityBoost = trapDistance < 8 ? 2.4 : trapDistance < 14 ? 1.8 : trapDistance < 20 ? 1.2 : 0.7;
+      const playerLeadBoost = nearTrap() && distance(cat.x, cat.y, playerState.x, playerState.y) < 10 ? 1.7 : 1;
+      return base * proximityBoost * playerLeadBoost * delta;
+    }
+
+    function updateTrap(delta) {
+      if (trapState.mode === "occupied_altered" && nearTrap()) {
+        releaseTrapCat();
+        statusText.textContent = "Wrong cat released. It still got fed, but the trap is open again.";
+        return;
+      }
+
+      if (trapState.mode !== "occupied_feral") {
+        return;
+      }
+
+      trapState.resolveTimer = Math.max(0, trapState.resolveTimer - delta);
+      if (trapState.resolveTimer > 0) {
+        return;
+      }
+
+      if (trapState.trappedCat) {
+        trapState.trappedCat.inTrap = false;
+      }
+      trapState.trappedCat = null;
+      trapState.mode = "idle";
+      renderTrap();
+      statusText.textContent = "Trap reset after the TNVR pickup placeholder.";
     }
 
     function renderPlayer() {
@@ -1144,6 +1301,7 @@
       fightState.soundPulseTimer = 0;
       fightState.flashTimer = 0;
       herderState.feedFrames = [];
+      resetTrap();
       rosieState.active = false;
       rosieState.returning = false;
       rosieState.x = rosieState.entryX;
@@ -1183,6 +1341,7 @@
       renderTripCounter();
       renderFightMarker();
       renderPeacemakerFlash();
+      renderTrap();
       renderRosie();
       setStartScreenVisible(false);
       statusText.textContent = `${profile.label} started with ${profile.startCats} cats in the yard. Reach ${nextPressureGoal} points to raise the pressure.`;
@@ -1223,6 +1382,29 @@
       if (playerState.refilling) {
         statusText.textContent = "Player is inside the house getting more food.";
         return;
+      }
+
+      if (nearTrap()) {
+        if (trapState.mode === "occupied_altered") {
+          releaseTrapCat();
+          statusText.textContent = "Wrong cat released. The trap is ready again.";
+          return;
+        }
+
+        if (trapState.mode === "idle") {
+          baitTrap();
+          return;
+        }
+
+        if (trapState.mode === "baited") {
+          statusText.textContent = "Trap already has bait in it.";
+          return;
+        }
+
+        if (trapState.mode === "occupied_feral") {
+          statusText.textContent = "Trap is occupied and waiting on TNVR pickup.";
+          return;
+        }
       }
 
       if (playerState.food <= 0) {
@@ -1364,7 +1546,7 @@
         return;
       }
 
-      const availableCats = catStates.filter((cat) => !cat.active);
+      const availableCats = catStates.filter((cat) => !cat.active && !cat.inTrap);
       if (availableCats.length === 0) {
         return;
       }
@@ -1493,6 +1675,10 @@
           cat.sprayCooldown -= delta;
         }
 
+        if (cat.trapFocusTimer > 0) {
+          cat.trapFocusTimer -= delta;
+        }
+
         if (isFightCat(cat)) {
           cat.foodTargetId = null;
           const partner = cat === fightState.catA ? fightState.catB : fightState.catA;
@@ -1530,6 +1716,26 @@
 
         if (rosieState.active && rosieDistance < rosieState.distractionRadius && chance(0.05 * delta)) {
           cat.wanderAngle += Math.PI / 2.4;
+        }
+
+        if (trapState.mode === "baited") {
+          const trapCenter = getTrapCenter();
+          const trapDistance = distance(cat.x, cat.y, trapCenter.x, trapCenter.y);
+          if (cat.trapFocusTimer <= 0 && chance(getTrapPullChance(cat, trapDistance, delta))) {
+            cat.trapFocusTimer = 180 + Math.random() * 90;
+          }
+
+          if (cat.trapFocusTimer > 0) {
+            cat.foodTargetId = null;
+            if (trapDistance > 1.9) {
+              moveToward(cat, trapCenter.x, trapCenter.y, cat.speed * 0.92 * delta, false);
+            } else if (triggerTrap(cat)) {
+              continue;
+            }
+            cat.x = clamp(cat.x, 7, 92);
+            cat.y = clamp(cat.y, 7, 92);
+            continue;
+          }
         }
 
         if (cat.satisfiedTimer > 0) {
@@ -1892,6 +2098,7 @@
       }
 
       updateCats(delta);
+      updateTrap(delta);
       updateRosie(delta);
       updateFoods(delta);
       maybeSpawnCat(delta);
@@ -1961,6 +2168,7 @@
     renderTripCounter();
     renderFightMarker();
     renderPeacemakerFlash();
+    renderTrap();
     setStartScreenVisible(true);
     loadPlayerSprites();
     requestAnimationFrame(step);
