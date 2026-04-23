@@ -171,6 +171,12 @@ Using JavaScript or Python here gives us faster iteration on:
 
 Once the design is proven, we can decide what gets ported directly, what gets simplified, and what needs a more C64-specific redesign.
 
+## Local Tooling
+
+- A tiny local Node setup is included for development checks only.
+- Run `npm run check` from the prototype directory to syntax-check `sprite_assets.js` and the inline game script inside `index.html`.
+- This tooling is optional and can be removed later without affecting the shipped HTML prototype.
+
 ## Planned Workflow
 
 1. Build a simple playable yard with one player, one food source, and a few cats

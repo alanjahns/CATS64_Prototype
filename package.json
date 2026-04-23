@@ -1,0 +1,9 @@
+{
+  "name": "cats64-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Minimal local dev tooling for the CATS64 HTML prototype.",
+  "scripts": {
+    "check": "node ./scripts/check.mjs"
+  }
+}
