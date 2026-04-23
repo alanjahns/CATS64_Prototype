@@ -86,7 +86,7 @@ The game should feel hectic, readable, and strategic rather than realistic or sl
 - Processing flow
 - Return or release state
 - Ear-tip visual state and persistent identity for handled cats
-- Current prototype pass: the player can bait the trap crate with food, ear-tipped cats can still spring it by mistake, and a successful TNVR capture is worth `+500`
+- Current prototype pass: the player can bait the trap crate with food, ear-tipped cats can still spring it by mistake, a successful TNVR capture is worth `+500`, and the game now pauses for a first-pass TNVR sequence showing the trip to the vet, a short educational message, and the cat's return to the yard.
 
 ### 5. Difficulty ramp
 
@@ -129,9 +129,10 @@ Current prototype note:
 
 ## Planned Future Events And Presentation
 
-- Fullscreen mode: the browser prototype can support entering fullscreen from a user key press and leaving with `ESC`. This should be treated as a browser-safe toggle using the Fullscreen API, which normally requires direct user input to enter.
-- `Rosie` chaos event: the neighbor dog can enter the yard through a hole in the fence as a disruption event. Most cats should scatter away from her, which can break up a herding setup, but in lighter cases she may behave more like a brief distraction. Rosie herself is friendly and should leave once she reaches the player for a hello. Design note: do not allow Rosie to appear in the first two levels.
+- Fullscreen mode: the browser prototype now supports a playfield-only fullscreen view on `F`, with `ESC` returning to the normal layout.
+- `Rosie` chaos event: the neighbor dog can now enter the yard through a hole in the fence as a disruption event. Most cats scatter away from her, which can break up a herding setup, and Rosie leaves after reaching the player for a hello. Design note: she stays out of the first two levels unless the dev override is enabled.
 - Holiday easter eggs: the browser version can read the player's local device date through JavaScript and use it for seasonal variations. Example ideas include more black cats on October 31 and a random pumpkin fly-by. This is best treated as a playful local-calendar feature rather than a secure server-side event system.
+- Dev test hooks: major set-piece systems should expose lightweight dev-only triggers where practical so animation-heavy features and edge cases can be tested without reproducing a full gameplay setup first.
 
 ## Prototype Goals
 
@@ -184,7 +185,7 @@ Once the design is proven, we can decide what gets ported directly, what gets si
 3. Add crowding and blocking behavior
 4. Add feeder trip or spill chaos events
 5. Add feral cats, traps, and a basic TNVR loop
-6. Add progression and difficulty ramping with a start screen, named opening difficulties, and rising pressure tiers tied to cats fed
+6. Add progression and difficulty ramping with a start screen, named opening difficulties, and rising pressure tiers tied to score earned
 7. Identify the minimum fun version of the game
 8. Review the design against real C64 constraints
 9. Plan the eventual C64 implementation based on what proved fun

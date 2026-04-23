@@ -72,6 +72,7 @@
             <input type="checkbox" id="rosieDevToggle">
             <span>Allow Rosie below level 3 for testing.</span>
           </label>
+          <button class="dev-action-button" id="tnvrDevButton" type="button">Run TNVR Scene</button>
         </div>
       </section>
 
@@ -187,6 +188,29 @@
             <div class="peacemaker-flash" id="peacemakerFlash" aria-live="polite">
               <span class="peacemaker-flash-main">PEACEMAKER</span>
               <span class="peacemaker-flash-points">+050</span>
+            </div>
+            <div class="tnvr-overlay" id="tnvrOverlay" aria-live="polite">
+              <div class="tnvr-panel">
+                <p class="tnvr-kicker" id="tnvrKicker">TNVR RUN</p>
+                <h3 class="tnvr-title" id="tnvrTitle">Heading To The Vet</h3>
+                <p class="tnvr-copy" id="tnvrCopy">A trapped feral cat is on the way to be spayed or neutered and vaccinated.</p>
+                <div class="tnvr-stage">
+                  <div class="tnvr-road" id="tnvrRoad">
+                    <div class="tnvr-house-icon" aria-hidden="true"></div>
+                    <div class="tnvr-car" id="tnvrCar">
+                      <span class="tnvr-car-body"></span>
+                      <span class="tnvr-car-wheel tnvr-car-wheel-a"></span>
+                      <span class="tnvr-car-wheel tnvr-car-wheel-b"></span>
+                    </div>
+                    <div class="tnvr-clinic-icon" aria-hidden="true"></div>
+                  </div>
+                  <div class="tnvr-release" id="tnvrRelease">
+                    <div class="tnvr-crate-mini" aria-hidden="true"></div>
+                    <div class="tnvr-cat-mini" id="tnvrCatMini" aria-hidden="true"></div>
+                  </div>
+                </div>
+                <p class="tnvr-note" id="tnvrNote">Fewer unfixed cats means fewer kittens born into dangerous outdoor conditions.</p>
+              </div>
             </div>
             <div class="spray-mark spray-tree" id="sprayTree"></div>
             <div class="spray-mark spray-shed" id="sprayShed"></div>
@@ -307,6 +331,7 @@
     const rosieSpriteCanvas = document.getElementById("rosieSpriteCanvas");
     const rosieSpriteContext = rosieSpriteCanvas.getContext("2d");
     const rosieDevToggle = document.getElementById("rosieDevToggle");
+    const tnvrDevButton = document.getElementById("tnvrDevButton");
     const trapCrate = document.getElementById("trapCrate");
     const statusText = document.getElementById("statusText");
     const foodMeterFill = document.getElementById("foodMeterFill");
@@ -321,6 +346,15 @@
     const peacemakerFlash = document.getElementById("peacemakerFlash");
     const peacemakerFlashMain = peacemakerFlash.querySelector(".peacemaker-flash-main");
     const peacemakerFlashPoints = peacemakerFlash.querySelector(".peacemaker-flash-points");
+    const tnvrOverlay = document.getElementById("tnvrOverlay");
+    const tnvrKicker = document.getElementById("tnvrKicker");
+    const tnvrTitle = document.getElementById("tnvrTitle");
+    const tnvrCopy = document.getElementById("tnvrCopy");
+    const tnvrNote = document.getElementById("tnvrNote");
+    const tnvrRoad = document.getElementById("tnvrRoad");
+    const tnvrRelease = document.getElementById("tnvrRelease");
+    const tnvrCar = document.getElementById("tnvrCar");
+    const tnvrCatMini = document.getElementById("tnvrCatMini");
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
     const startScreen = document.getElementById("startScreen");
@@ -453,6 +487,13 @@
       mode: "idle",
       trappedCat: null,
       resolveTimer: 0
+    };
+    const tnvrSequence = {
+      active: false,
+      phase: "travel",
+      timer: 0,
+      trappedCat: null,
+      devTriggered: false
     };
     const houseBounds = {
       left: 31,
@@ -847,6 +888,19 @@
       trapCrate.classList.toggle("is-processing", trapState.mode === "occupied_feral");
     }
 
+    function renderTNVRSequence() {
+      tnvrOverlay.classList.toggle("is-active", tnvrSequence.active);
+      tnvrOverlay.classList.toggle("is-paused", tnvrSequence.active && isPaused);
+      if (!tnvrSequence.active) {
+        return;
+      }
+
+      tnvrRoad.classList.toggle("is-active", tnvrSequence.phase === "travel" || tnvrSequence.phase === "education");
+      tnvrRelease.classList.toggle("is-active", tnvrSequence.phase === "release");
+      tnvrCar.classList.toggle("is-driving", tnvrSequence.phase === "travel");
+      tnvrCatMini.classList.toggle("is-releasing", tnvrSequence.phase === "release");
+    }
+
     function getTrapCenter() {
       return {
         x: (trapBounds.left + trapBounds.right) / 2,
@@ -864,6 +918,83 @@
       trapState.trappedCat = null;
       trapState.resolveTimer = 0;
       renderTrap();
+    }
+
+    function startTNVRSequence(cat = null, devTriggered = false) {
+      tnvrSequence.active = true;
+      tnvrSequence.phase = "travel";
+      tnvrSequence.timer = 170;
+      tnvrSequence.trappedCat = cat;
+      tnvrSequence.devTriggered = devTriggered;
+      tnvrKicker.textContent = devTriggered ? "TNVR TEST" : "TNVR RUN";
+      tnvrTitle.textContent = "Heading To The Vet";
+      tnvrCopy.textContent = "A trapped feral cat is on the way to be spayed or neutered and vaccinated.";
+      tnvrNote.textContent = "Fewer unfixed cats means fewer kittens born into dangerous outdoor conditions.";
+      renderTNVRSequence();
+    }
+
+    function finishTNVRSequence() {
+      const cat = tnvrSequence.trappedCat;
+      if (cat) {
+        const trapCenter = getTrapCenter();
+        activateCat(cat, {
+          x: clamp(trapCenter.x - 5.2, 7, 92),
+          y: clamp(trapCenter.y + 5.2, 7, 92)
+        });
+        cat.altered = true;
+        cat.contactCooldown = 220;
+        cat.inTrap = false;
+        satisfyCat(cat, 960);
+        renderCats();
+        renderCatCounter();
+      }
+
+      tnvrSequence.active = false;
+      tnvrSequence.phase = "travel";
+      tnvrSequence.timer = 0;
+      tnvrSequence.trappedCat = null;
+      tnvrSequence.devTriggered = false;
+      trapState.trappedCat = null;
+      trapState.mode = "idle";
+      trapState.resolveTimer = 0;
+      renderTrap();
+      renderTNVRSequence();
+      statusText.textContent = cat
+        ? "TNVR complete. The cat has been returned to the yard with an ear-tip."
+        : "TNVR demo finished.";
+    }
+
+    function updateTNVRSequence(delta) {
+      if (!tnvrSequence.active) {
+        return;
+      }
+
+      tnvrSequence.timer = Math.max(0, tnvrSequence.timer - delta);
+      if (tnvrSequence.timer > 0) {
+        return;
+      }
+
+      if (tnvrSequence.phase === "travel") {
+        tnvrSequence.phase = "education";
+        tnvrSequence.timer = 170;
+        tnvrTitle.textContent = "Why TNVR Matters";
+        tnvrCopy.textContent = "Spaying, neutering, and vaccinating outdoor cats helps stabilize colonies and reduces future suffering.";
+        tnvrNote.textContent = "Returning a healthy ear-tipped cat prevents repeat trapping and shows the cat has already been handled.";
+        renderTNVRSequence();
+        return;
+      }
+
+      if (tnvrSequence.phase === "education") {
+        tnvrSequence.phase = "release";
+        tnvrSequence.timer = 155;
+        tnvrTitle.textContent = "Back To The Yard";
+        tnvrCopy.textContent = "After TNVR, the cat returns healthier and no longer contributes to more homeless litters.";
+        tnvrNote.textContent = "This release beat is a placeholder now, and we can make it more cinematic later.";
+        renderTNVRSequence();
+        return;
+      }
+
+      finishTNVRSequence();
     }
 
     function releaseTrapCat() {
@@ -929,8 +1060,10 @@
         cat.altered = true;
         addScore(scoring.tnvr);
         updatePressureProgress();
-        showEventFlash("TNVR", scoring.tnvr);
-        statusText.textContent = "TNVR capture! Vet-trip animation pass comes next.";
+        fightState.flashTimer = 0;
+        renderPeacemakerFlash();
+        startTNVRSequence(cat, false);
+        statusText.textContent = "TNVR capture! Heading to the vet.";
       }
 
       renderTrap();
@@ -961,22 +1094,9 @@
         return;
       }
 
-      if (trapState.mode !== "occupied_feral") {
-        return;
+      if (trapState.mode === "occupied_feral" && !tnvrSequence.active && !trapState.trappedCat) {
+        resetTrap();
       }
-
-      trapState.resolveTimer = Math.max(0, trapState.resolveTimer - delta);
-      if (trapState.resolveTimer > 0) {
-        return;
-      }
-
-      if (trapState.trappedCat) {
-        trapState.trappedCat.inTrap = false;
-      }
-      trapState.trappedCat = null;
-      trapState.mode = "idle";
-      renderTrap();
-      statusText.textContent = "Trap reset after the TNVR pickup placeholder.";
     }
 
     function renderPlayer() {
@@ -1975,9 +2095,12 @@
     function togglePause() {
       isPaused = !isPaused;
       pressedKeys.clear();
+      renderTNVRSequence();
       statusText.textContent = isPaused
         ? "Paused. Press P to resume."
-        : "Resumed. Press Space to drop food or keep moving.";
+        : tnvrSequence.active
+          ? "TNVR sequence resumed."
+          : "Resumed. Press Space to drop food or keep moving.";
     }
 
     async function toggleFullscreen() {
@@ -2005,6 +2128,12 @@
       elapsedFrames += delta;
 
       if (isPaused) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      if (tnvrSequence.active) {
+        updateTNVRSequence(delta);
         requestAnimationFrame(step);
         return;
       }
@@ -2157,6 +2286,14 @@
       });
     });
 
+    tnvrDevButton.addEventListener("click", () => {
+      if (tnvrSequence.active) {
+        return;
+      }
+      startTNVRSequence(null, true);
+      statusText.textContent = "Running TNVR demo sequence.";
+    });
+
     createExtraCats();
     renderPlayer();
     renderRosie();
@@ -2169,6 +2306,7 @@
     renderFightMarker();
     renderPeacemakerFlash();
     renderTrap();
+    renderTNVRSequence();
     setStartScreenVisible(true);
     loadPlayerSprites();
     requestAnimationFrame(step);
