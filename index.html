@@ -225,7 +225,7 @@
               <li>Move with `WASD` or the arrow keys.</li>
               <li>Press `Space` to drop one serving of food, or bait the trap when standing by it.</li>
               <li>The slab beside the house is the herding zone. Cluster feeding there can trigger a bonus.</li>
-              <li>Fresh food pulls cats in quickly. Old food becomes weaker as it dries and spoils.</li>
+              <li>Fresh food pulls cats in quickly. If you run out of food, any food already on the ground draws extra attention and can open a lane back to the house.</li>
               <li>Fed cats become satisfied for a while and stop crowding you so aggressively.</li>
               <li>If a cat trips you, half your carried food rolls away and your trip count rises.</li>
               <li>Go back through the house door when supplies run low to refill to 10 food.</li>
@@ -1635,10 +1635,14 @@
     function pickNearestFood(cat) {
       let best = null;
       let bestDistance = Infinity;
+      const playerOutOfFood = playerState.food <= 0 && !playerState.refilling && !playerState.hidden;
 
       for (const food of foodDots) {
         const currentDistance = distance(cat.x, cat.y, food.x, food.y);
-        const attractionRange = food.stage === "fresh" ? 28 : food.stage === "dry" ? 18 : 10;
+        const baseAttractionRange = food.stage === "fresh" ? 28 : food.stage === "dry" ? 18 : 10;
+        const attractionRange = playerOutOfFood
+          ? baseAttractionRange + (food.stage === "fresh" ? 10 : food.stage === "dry" ? 8 : 6)
+          : baseAttractionRange;
         if (currentDistance > attractionRange) {
           continue;
         }
@@ -1914,9 +1918,12 @@
         } else if (!playerState.refilling && !playerState.hidden) {
           cat.foodTargetId = null;
           const playerDistance = distance(cat.x, cat.y, playerState.x, playerState.y);
+          const playerOutOfFood = playerState.food <= 0;
+          const chaseRange = playerOutOfFood ? 24 : 34;
+          const chaseSpeed = playerOutOfFood ? 0.4 : 0.55;
 
-          if (playerDistance < 34 && playerDistance > 5.5) {
-            moveToward(cat, playerState.x, playerState.y, cat.speed * 0.55 * delta, false);
+          if (playerDistance < chaseRange && playerDistance > 5.5) {
+            moveToward(cat, playerState.x, playerState.y, cat.speed * chaseSpeed * delta, false);
           } else {
             cat.wanderTimer -= delta;
 
