@@ -48,7 +48,15 @@
         </div>
         <div class="controls-card">
           <strong>Status</strong>
-          <p id="statusText">Choose a starting difficulty in the yard view to begin the run.</p>
+          <div class="status-panel">
+            <p id="statusText">Choose a starting difficulty in the yard view to begin the run.</p>
+            <div class="status-log" id="statusLog" aria-label="Recent status log"></div>
+            <div class="status-actions">
+              <button class="dev-action-button status-dump-button" id="dumpStatusLogButton" type="button">Dump TXT</button>
+              <button class="dev-action-button status-dump-button" id="dumpStatusXmlButton" type="button">Dump XML</button>
+            </div>
+            <p class="status-note">Downloads a timestamped log file you can move into `LOGS/` for review. XML groups movement spam into sequences.</p>
+          </div>
         </div>
         <div class="controls-card">
           <strong>Food Supply</strong>
@@ -62,8 +70,8 @@
         <div class="controls-card">
           <strong>Trip Counter</strong>
           <div class="trip-meter">
-            <p id="tripCounterText">Trips: 0 / 3</p>
-            <p id="tripCounterNote">Testing mode: trips are tracked, but game over is disabled for now.</p>
+            <p id="tripCounterText">Trips: 0 / 5</p>
+            <p id="tripCounterNote">Testing mode: trips are tracked, and every 1000 points recovers one life.</p>
           </div>
         </div>
         <div class="controls-card controls-card-dev">
@@ -132,7 +140,7 @@
                 <span class="fence-hud-posts fence-hud-posts-center-2" aria-hidden="true"></span>
                 <span class="fence-hud-cats" id="catCountText">CATS 0</span>
                 <span class="fence-hud-posts fence-hud-posts-center-3" aria-hidden="true"></span>
-                <span class="fence-hud-lives" id="livesText">3/3</span>
+                <span class="fence-hud-lives" id="livesText">5/5</span>
                 <span class="fence-hud-posts fence-hud-posts-right" aria-hidden="true"></span>
               </div>
             </div>
@@ -189,6 +197,7 @@
               <span class="peacemaker-flash-main">PEACEMAKER</span>
               <span class="peacemaker-flash-points">+050</span>
             </div>
+            <div class="score-popup-layer" id="scorePopupLayer" aria-hidden="true"></div>
             <div class="tnvr-overlay" id="tnvrOverlay" aria-live="polite">
               <div class="tnvr-panel">
                 <p class="tnvr-kicker" id="tnvrKicker">TNVR RUN</p>
@@ -227,7 +236,7 @@
               <li>The slab beside the house is the herding zone. Cluster feeding there can trigger a bonus.</li>
               <li>Fresh food pulls cats in quickly. If you run out of food, any food already on the ground draws extra attention and can open a lane back to the house.</li>
               <li>Fed cats become satisfied for a while and stop crowding you so aggressively.</li>
-              <li>If a cat trips you, half your carried food rolls away and your trip count rises.</li>
+              <li>If a cat trips you, half your carried food rolls away and your trip count rises. Every 1000 points restores one life.</li>
               <li>Go back through the house door when supplies run low to refill to 10 food.</li>
               <li>From level 3 onward, Rosie may burst in through the fence and scatter the yard until you greet her.</li>
               <li>Ear-tipped cats can still stumble into the trap, so watch who is already hovering near it.</li>
@@ -334,6 +343,9 @@
     const tnvrDevButton = document.getElementById("tnvrDevButton");
     const trapCrate = document.getElementById("trapCrate");
     const statusText = document.getElementById("statusText");
+    const statusLog = document.getElementById("statusLog");
+    const dumpStatusLogButton = document.getElementById("dumpStatusLogButton");
+    const dumpStatusXmlButton = document.getElementById("dumpStatusXmlButton");
     const foodMeterFill = document.getElementById("foodMeterFill");
     const foodMeterText = document.getElementById("foodMeterText");
     const scoreText = document.getElementById("scoreText");
@@ -346,6 +358,7 @@
     const peacemakerFlash = document.getElementById("peacemakerFlash");
     const peacemakerFlashMain = peacemakerFlash.querySelector(".peacemaker-flash-main");
     const peacemakerFlashPoints = peacemakerFlash.querySelector(".peacemaker-flash-points");
+    const scorePopupLayer = document.getElementById("scorePopupLayer");
     const tnvrOverlay = document.getElementById("tnvrOverlay");
     const tnvrKicker = document.getElementById("tnvrKicker");
     const tnvrTitle = document.getElementById("tnvrTitle");
@@ -390,6 +403,8 @@
       peacemaker: 50,
       catHerder: 100
     };
+    const maxTrips = 5;
+    const bonusLifeEveryPoints = 1000;
     const difficultyProfiles = {
       easy: {
         label: "Easy",
@@ -446,10 +461,12 @@
     let selectedDifficultyKey = "easy";
     let currentPressureTier = 0;
     let nextPressureGoal = pointsPerPressureTier;
+    let nextBonusLifeScore = bonusLifeEveryPoints;
     let elapsedFrames = 0;
     const maxCats = 20;
     let audioContext;
     let levelUpAudio;
+    const statusHistory = [];
     const fightState = {
       active: false,
       catA: null,
@@ -495,6 +512,7 @@
       trappedCat: null,
       devTriggered: false
     };
+    const scorePopups = [];
     const houseBounds = {
       left: 31,
       right: 69,
@@ -959,9 +977,9 @@
       trapState.resolveTimer = 0;
       renderTrap();
       renderTNVRSequence();
-      statusText.textContent = cat
+      setStatus(cat
         ? "TNVR complete. The cat has been returned to the yard with an ear-tip."
-        : "TNVR demo finished.";
+        : "TNVR demo finished.");
     }
 
     function updateTNVRSequence(delta) {
@@ -1025,7 +1043,7 @@
         return false;
       }
       if (playerState.food <= 0) {
-        statusText.textContent = "Out of food. You need one serving to bait the trap.";
+        setStatus("Out of food. You need one serving to bait the trap.");
         return true;
       }
 
@@ -1035,7 +1053,7 @@
       trapState.resolveTimer = 0;
       renderFoodMeter();
       renderTrap();
-      statusText.textContent = "Trap baited. Lead the right cat toward it.";
+      setStatus("Trap baited. Lead the right cat toward it.");
       return true;
     }
 
@@ -1044,6 +1062,7 @@
         return false;
       }
 
+      const trapCenter = getTrapCenter();
       trapState.trappedCat = cat;
       trapState.mode = cat.altered ? "occupied_altered" : "occupied_feral";
       trapState.resolveTimer = cat.altered ? 0 : 150;
@@ -1051,19 +1070,18 @@
       cat.active = false;
       cat.foodTargetId = null;
       cat.trapFocusTimer = 0;
-      addScore(scoring.catFed);
       updatePressureProgress();
 
       if (cat.altered) {
-        statusText.textContent = "An ear-tipped cat got into the trap. Walk over and let it back out.";
+        setStatus("An ear-tipped cat got into the trap. Walk over and let it back out.");
       } else {
         cat.altered = true;
-        addScore(scoring.tnvr);
+        addScore(scoring.tnvr, trapCenter.x, trapCenter.y - 7, "TNVR +500", "bonus");
         updatePressureProgress();
         fightState.flashTimer = 0;
         renderPeacemakerFlash();
         startTNVRSequence(cat, false);
-        statusText.textContent = "TNVR capture! Heading to the vet.";
+        setStatus("TNVR capture! Heading to the vet.");
       }
 
       renderTrap();
@@ -1090,7 +1108,7 @@
     function updateTrap(delta) {
       if (trapState.mode === "occupied_altered" && nearTrap()) {
         releaseTrapCat();
-        statusText.textContent = "Wrong cat released. It still got fed, but the trap is open again.";
+        setStatus("Wrong cat released. It still got fed, but the trap is open again.");
         return;
       }
 
@@ -1143,13 +1161,13 @@
     }
 
     function renderTripCounter() {
-      tripCounterText.textContent = `Trips: ${playerState.tripCount} / 3`;
-      const livesLeft = Math.max(0, 3 - playerState.tripCount);
-      livesText.textContent = `${livesLeft}/3`;
-      if (playerState.tripCount >= 3) {
-        tripCounterNote.textContent = "Testing mode: 3+ trips reached, but game over is intentionally disabled.";
+      tripCounterText.textContent = `Trips: ${playerState.tripCount} / ${maxTrips}`;
+      const livesLeft = Math.max(0, maxTrips - playerState.tripCount);
+      livesText.textContent = `${livesLeft}/${maxTrips}`;
+      if (playerState.tripCount >= maxTrips) {
+        tripCounterNote.textContent = "Testing mode: 5+ trips reached, but game over is intentionally disabled.";
       } else {
-        tripCounterNote.textContent = "Testing mode: trips are tracked, but game over is disabled for now.";
+        tripCounterNote.textContent = "Testing mode: trips are tracked, and every 1000 points recovers one life.";
       }
     }
 
@@ -1179,9 +1197,199 @@
       scoreText.textContent = `${score}`.padStart(6, "0");
     }
 
-    function addScore(points) {
+    function formatStatusTimestamp(date = new Date()) {
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function formatStatusFilenameTimestamp(date = new Date()) {
+      const pad = (value) => String(value).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}_${pad(date.getHours())}-${pad(date.getMinutes())}-${pad(date.getSeconds())}`;
+    }
+
+    function appendStatusHistory(message) {
+      const entry = `[${formatStatusTimestamp()}] ${message}`;
+      statusHistory.push(entry);
+      if (statusHistory.length > 400) {
+        statusHistory.shift();
+      }
+
+      const line = document.createElement("div");
+      line.className = "status-log-line";
+      line.textContent = entry;
+      statusLog.appendChild(line);
+      while (statusLog.children.length > 400) {
+        statusLog.removeChild(statusLog.firstChild);
+      }
+      statusLog.scrollTop = statusLog.scrollHeight;
+    }
+
+    function setStatus(message, { log = true } = {}) {
+      statusText.textContent = message;
+      if (log) {
+        appendStatusHistory(message);
+      }
+    }
+
+    function dumpStatusLog() {
+      const timestamp = formatStatusFilenameTimestamp();
+      const filename = `cats64_status_log_${timestamp}.txt`;
+      const content = statusHistory.length > 0
+        ? statusHistory.join("\n")
+        : `[${formatStatusTimestamp()}] No status entries captured yet.`;
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatus(`Dumped status log as ${filename}. Move it into LOGS/ for me to review.`);
+    }
+
+    function parseStatusEntry(entry) {
+      const match = entry.match(/^\[([^\]]+)\]\s+(.*)$/);
+      if (!match) {
+        return { timestamp: "", message: entry };
+      }
+      return {
+        timestamp: match[1],
+        message: match[2]
+      };
+    }
+
+    function escapeXml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&apos;");
+    }
+
+    function isMovementMessage(message) {
+      return message.startsWith("Player moving at x ");
+    }
+
+    function buildStructuredStatusXml() {
+      const entries = statusHistory.map(parseStatusEntry);
+      const lines = [
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+        "<statusLog>"
+      ];
+
+      let index = 0;
+      while (index < entries.length) {
+        const entry = entries[index];
+        if (isMovementMessage(entry.message)) {
+          const group = [entry];
+          let inner = index + 1;
+          while (inner < entries.length && isMovementMessage(entries[inner].message)) {
+            group.push(entries[inner]);
+            inner += 1;
+          }
+
+          lines.push(`  <movementSequence count="${group.length}" start="${escapeXml(group[0].timestamp)}" end="${escapeXml(group[group.length - 1].timestamp)}">`);
+          group.forEach((item) => {
+            lines.push(`    <entry time="${escapeXml(item.timestamp)}">${escapeXml(item.message)}</entry>`);
+          });
+          lines.push("  </movementSequence>");
+          index = inner;
+          continue;
+        }
+
+        lines.push(`  <event time="${escapeXml(entry.timestamp)}">${escapeXml(entry.message)}</event>`);
+        index += 1;
+      }
+
+      lines.push("</statusLog>");
+      return lines.join("\n");
+    }
+
+    function dumpStatusXml() {
+      const timestamp = formatStatusFilenameTimestamp();
+      const filename = `cats64_status_log_${timestamp}.xml`;
+      const content = buildStructuredStatusXml();
+      const blob = new Blob([content], { type: "application/xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatus(`Dumped structured status log as ${filename}. Move it into LOGS/ for me to review.`);
+    }
+
+    function createScorePopup(x, y, text, variant = "score") {
+      if (typeof x !== "number" || typeof y !== "number") {
+        return;
+      }
+
+      const element = document.createElement("div");
+      element.className = `score-popup score-popup-${variant}`;
+      element.textContent = text;
+      scorePopupLayer.appendChild(element);
+      scorePopups.push({
+        element,
+        x,
+        y,
+        age: 0,
+        lifetime: variant === "life" ? 95 : 72
+      });
+      element.style.left = `${x}%`;
+      element.style.top = `${y}%`;
+    }
+
+    function updateScorePopups(delta) {
+      for (let index = scorePopups.length - 1; index >= 0; index -= 1) {
+        const popup = scorePopups[index];
+        popup.age += delta;
+        const progress = Math.min(1, popup.age / popup.lifetime);
+        popup.element.style.left = `${popup.x}%`;
+        popup.element.style.top = `${popup.y - progress * 7}%`;
+        popup.element.style.opacity = `${1 - progress}`;
+        popup.element.style.transform = `translate(-50%, -50%) scale(${1 + progress * 0.18})`;
+
+        if (popup.age >= popup.lifetime) {
+          popup.element.remove();
+          scorePopups.splice(index, 1);
+        }
+      }
+    }
+
+    function awardBonusLifeIfNeeded() {
+      let awarded = 0;
+      while (score >= nextBonusLifeScore) {
+        nextBonusLifeScore += bonusLifeEveryPoints;
+        if (playerState.tripCount > 0) {
+          playerState.tripCount -= 1;
+          awarded += 1;
+        }
+      }
+
+      if (awarded > 0) {
+        renderTripCounter();
+        createScorePopup(playerState.x, playerState.y - 4, awarded > 1 ? `${awarded}UP` : "1UP", "life");
+        setStatus(awarded > 1
+          ? `${awarded} lives recovered from score milestones.`
+          : "1UP! Recovered one trip from score milestones.");
+      }
+    }
+
+    function addScore(points, popupX = null, popupY = null, popupLabel = null, popupVariant = "score") {
       score += points;
       renderScore();
+      if (typeof popupX === "number" && typeof popupY === "number") {
+        createScorePopup(popupX, popupY, popupLabel || `+${String(points).padStart(3, "0")}`, popupVariant);
+      }
+      awardBonusLifeIfNeeded();
     }
 
     function endFight(success = false) {
@@ -1256,7 +1464,7 @@
       return overlapsRect(x, y, feedingSlabBounds, 0);
     }
 
-    function registerSlabFeed(feedCount) {
+    function registerSlabFeed(feedCount, x = null, y = null) {
       if (feedCount <= 0) {
         return false;
       }
@@ -1272,7 +1480,7 @@
       }
 
       herderState.feedFrames = [];
-      addScore(scoring.catHerder);
+      addScore(scoring.catHerder, x, y, "HERDER +100", "bonus");
       showEventFlash("CAT HERDER", scoring.catHerder);
       return true;
     }
@@ -1317,7 +1525,7 @@
       updateFightMidpoint();
       renderCats();
       playFightSquabble();
-      statusText.textContent = "Two cats are fighting. Drop food nearby to make peace.";
+      setStatus("Two cats are fighting. Drop food nearby to make peace.");
     }
 
     function maybeStartFight(delta) {
@@ -1369,10 +1577,10 @@
         return false;
       }
 
-      addScore(scoring.peacemaker);
+      addScore(scoring.peacemaker, fightState.markerX, fightState.markerY - 4);
       showPeacemakerFlash();
       endFight(true);
-      statusText.textContent = "Peacemaker! Food broke up the cat fight.";
+      setStatus("Peacemaker! Food broke up the cat fight.");
       return true;
     }
 
@@ -1406,6 +1614,7 @@
       selectedDifficultyKey = difficultyKey;
       currentPressureTier = 0;
       nextPressureGoal = pointsPerPressureTier;
+      nextBonusLifeScore = bonusLifeEveryPoints;
       elapsedFrames = 0;
       score = 0;
       nextFoodId = 1;
@@ -1421,6 +1630,8 @@
       fightState.soundPulseTimer = 0;
       fightState.flashTimer = 0;
       herderState.feedFrames = [];
+      scorePopups.forEach((popup) => popup.element.remove());
+      scorePopups.length = 0;
       resetTrap();
       rosieState.active = false;
       rosieState.returning = false;
@@ -1464,7 +1675,7 @@
       renderTrap();
       renderRosie();
       setStartScreenVisible(false);
-      statusText.textContent = `${profile.label} started with ${profile.startCats} cats in the yard. Reach ${nextPressureGoal} points to raise the pressure.`;
+      setStatus(`${profile.label} started with ${profile.startCats} cats in the yard. Reach ${nextPressureGoal} points to raise the pressure.`);
     }
 
     function triggerSpray(targetKey) {
@@ -1490,7 +1701,7 @@
           cat.sprayCooldown = 720;
           cat.wanderTimer = 0;
           triggerSpray(target.key);
-          statusText.textContent = `A male unaltered cat sprayed near the ${target.key}.`;
+          setStatus(`A male unaltered cat sprayed near the ${target.key}.`);
           return true;
         }
       }
@@ -1500,14 +1711,14 @@
 
     function dropFood() {
       if (playerState.refilling) {
-        statusText.textContent = "Player is inside the house getting more food.";
+        setStatus("Player is inside the house getting more food.");
         return;
       }
 
       if (nearTrap()) {
         if (trapState.mode === "occupied_altered") {
           releaseTrapCat();
-          statusText.textContent = "Wrong cat released. The trap is ready again.";
+          setStatus("Wrong cat released. The trap is ready again.");
           return;
         }
 
@@ -1517,18 +1728,18 @@
         }
 
         if (trapState.mode === "baited") {
-          statusText.textContent = "Trap already has bait in it.";
+          setStatus("Trap already has bait in it.");
           return;
         }
 
         if (trapState.mode === "occupied_feral") {
-          statusText.textContent = "Trap is occupied and waiting on TNVR pickup.";
+          setStatus("Trap is occupied and waiting on TNVR pickup.");
           return;
         }
       }
 
       if (playerState.food <= 0) {
-        statusText.textContent = "Out of food. Go to the back door to refill.";
+        setStatus("Out of food. Go to the back door to refill.");
         return;
       }
 
@@ -1544,9 +1755,9 @@
       nextFoodId += 1;
       playerState.food -= 1;
       renderFoodMeter();
-      statusText.textContent = maybeResolveFightWithFood(x, y)
+      setStatus(maybeResolveFightWithFood(x, y)
         ? "PEACEMAKER +050"
-        : `Food placed at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
+        : `Food placed at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`);
     }
 
     function satisfyCat(cat, duration = 900) {
@@ -1602,15 +1813,15 @@
           food.stage = nextStage;
           updateFoodAppearance(food);
           if (nextStage === "dry") {
-            statusText.textContent = "Some food is drying out and becoming less appealing.";
+            setStatus("Some food is drying out and becoming less appealing.");
           } else if (nextStage === "spoiled") {
-            statusText.textContent = "Some food has spoiled and turned bad.";
+            setStatus("Some food has spoiled and turned bad.");
           }
         }
 
         if (nextStage === "gone") {
           removeFood(food.id);
-          statusText.textContent = "Old spoiled food finally disappeared.";
+          setStatus("Old spoiled food finally disappeared.");
         }
       }
     }
@@ -1685,9 +1896,9 @@
       spawnCooldown = spawnRules.spawnCooldown;
       renderCats();
       renderCatCounter();
-      statusText.textContent = batchSize > 1
+      setStatus(batchSize > 1
         ? `${batchSize} more cats jumped into the yard. Active cats: ${activeCats + batchSize}.`
-        : `Another cat entered the yard. Active cats: ${activeCats + 1}.`;
+        : `Another cat entered the yard. Active cats: ${activeCats + 1}.`);
     }
 
     function startRosieEvent() {
@@ -1698,7 +1909,7 @@
       rosieState.barkCooldown = 180;
       renderRosie();
       playRosieBark();
-      statusText.textContent = "Rosie squeezed through the fence. Most cats are scrambling.";
+      setStatus("Rosie squeezed through the fence. Most cats are scrambling.");
     }
 
     function maybeSpawnRosie(delta) {
@@ -1749,7 +1960,7 @@
       if (!rosieState.returning && !playerState.hidden && distance(rosieState.x, rosieState.y, playerState.x, playerState.y) <= rosieState.helloRadius) {
         rosieState.returning = true;
         rosieState.barkCooldown = 120;
-        statusText.textContent = "Rosie got her hello and is trotting back out through the fence.";
+        setStatus("Rosie got her hello and is trotting back out through the fence.");
       }
 
       if (rosieState.returning && rosieState.x <= rosieState.entryX - 1.8) {
@@ -1757,7 +1968,7 @@
         rosieState.returning = false;
         renderRosie();
         resetRosieCooldown(1800);
-        statusText.textContent = "Rosie ran back out through the fence hole.";
+        setStatus("Rosie ran back out through the fence hole.");
         return;
       }
 
@@ -1776,7 +1987,7 @@
         }
         if (fightState.timer <= 0) {
           endFight(false);
-          statusText.textContent = "The cat fight ended before you could make peace.";
+          setStatus("The cat fight ended before you could make peace.");
         }
       } else {
         maybeStartFight(delta);
@@ -2001,16 +2212,16 @@
         if (food.eatenProgress >= 1) {
           for (const cat of food.fedCats) {
             satisfyCat(cat);
-            addScore(scoring.catFed);
+            addScore(scoring.catFed, cat.x, cat.y - 3);
           }
           const herderTriggered = isInsideFeedingSlab(food.x, food.y)
-            ? registerSlabFeed(food.fedCats.size)
+            ? registerSlabFeed(food.fedCats.size, food.x, food.y - 5)
             : false;
           const pressureMessage = updatePressureProgress();
           removeFood(food.id);
-          statusText.textContent = herderTriggered
+          setStatus(herderTriggered
             ? `CAT HERDER +${String(scoring.catHerder).padStart(3, "0")}`
-            : pressureMessage || "Cats ate the food and some are now satisfied.";
+            : pressureMessage || "Cats ate the food and some are now satisfied.");
         }
       }
 
@@ -2036,7 +2247,7 @@
         if (gap < 4.4) {
           if (cat.satisfiedTimer > 0 && Math.random() > 0.2) {
             cat.contactCooldown = 120;
-            statusText.textContent = "A satisfied cat came close, but just wanted attention.";
+            setStatus("A satisfied cat came close, but just wanted attention.");
             break;
           }
 
@@ -2052,9 +2263,9 @@
           renderFoodMeter();
           renderTripCounter();
           renderPlayer();
-          statusText.textContent = foodLost > 0
-            ? `Cat trip! ${foodLost} food rolled away. Count is now ${playerState.tripCount}.`
-            : `Cat trip! Count is now ${playerState.tripCount}.`;
+          setStatus(foodLost > 0
+            ? `Cat trip! Lost ${foodLost} food. Trips: ${playerState.tripCount}/${maxTrips}.`
+            : `Cat trip! Trips: ${playerState.tripCount}/${maxTrips}.`);
           break;
         }
       }
@@ -2095,7 +2306,7 @@
       playerState.refilling = true;
       playerState.refillProgress = 0;
       playerState.hidden = true;
-      statusText.textContent = "Player went inside the house to get more food.";
+      setStatus("Player went inside the house to get more food.");
       renderPlayer();
     }
 
@@ -2103,29 +2314,29 @@
       isPaused = !isPaused;
       pressedKeys.clear();
       renderTNVRSequence();
-      statusText.textContent = isPaused
+      setStatus(isPaused
         ? "Paused. Press P to resume."
         : tnvrSequence.active
           ? "TNVR sequence resumed."
-          : "Resumed. Press Space to drop food or keep moving.";
+          : "Resumed. Press Space to drop food or keep moving.");
     }
 
     async function toggleFullscreen() {
       if (!document.fullscreenEnabled) {
-        statusText.textContent = "Fullscreen is not available in this browser.";
+        setStatus("Fullscreen is not available in this browser.");
         return;
       }
 
       try {
         if (document.fullscreenElement === yardFrame) {
           await document.exitFullscreen();
-          statusText.textContent = "Exited yard fullscreen.";
+          setStatus("Exited yard fullscreen.");
         } else {
           await yardFrame.requestFullscreen();
-          statusText.textContent = "Entered yard fullscreen. Press ESC to leave.";
+          setStatus("Entered yard fullscreen. Press ESC to leave.");
         }
       } catch (error) {
-        statusText.textContent = "Fullscreen request was blocked by the browser.";
+        setStatus("Fullscreen request was blocked by the browser.");
       }
     }
 
@@ -2153,6 +2364,7 @@
       if (fightState.flashTimer > 0) {
         fightState.flashTimer = Math.max(0, fightState.flashTimer - delta);
         renderPeacemakerFlash();
+        updateScorePopups(delta);
         requestAnimationFrame(step);
         return;
       }
@@ -2179,7 +2391,7 @@
           renderPlayer();
           renderCats();
           renderFoodMeter();
-          statusText.textContent = "Food restocked. Player returned to the yard.";
+          setStatus("Food restocked. Player returned to the yard.");
         }
       } else {
         if (playerState.tripCooldown > 0) {
@@ -2228,7 +2440,7 @@
           if (nearDoorway() && playerState.food < playerState.foodCapacity) {
             startRefill();
           } else {
-            statusText.textContent = `Player moving at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`;
+            setStatus(`Player moving at x ${playerState.x.toFixed(1)}, y ${playerState.y.toFixed(1)}.`);
           }
         }
       }
@@ -2240,6 +2452,7 @@
       maybeSpawnCat(delta);
       maybeSpawnRosie(delta);
       checkPlayerTrips();
+      updateScorePopups(delta);
 
       requestAnimationFrame(step);
     }
@@ -2298,7 +2511,15 @@
         return;
       }
       startTNVRSequence(null, true);
-      statusText.textContent = "Running TNVR demo sequence.";
+      setStatus("Running TNVR demo sequence.");
+    });
+
+    dumpStatusLogButton.addEventListener("click", () => {
+      dumpStatusLog();
+    });
+
+    dumpStatusXmlButton.addEventListener("click", () => {
+      dumpStatusXml();
     });
 
     createExtraCats();
@@ -2316,6 +2537,7 @@
     renderTNVRSequence();
     setStartScreenVisible(true);
     loadPlayerSprites();
+    appendStatusHistory(statusText.textContent);
     requestAnimationFrame(step);
   </script>
 </body>
