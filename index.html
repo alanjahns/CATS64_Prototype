@@ -491,6 +491,7 @@
       returning: false,
       hiddenWander: false,
       catChasing: false,
+      circlingYard: false,
       obstacleTurnBias: 1,
       x: 4.5,
       y: 78,
@@ -501,6 +502,8 @@
       barkCooldown: 0,
       wanderTimer: 0,
       wanderAngle: 0,
+      circlingTimer: 0,
+      circlingTargetIndex: 0,
       scatterRadius: 22,
       distractionRadius: 30,
       helloRadius: 5.4
@@ -551,6 +554,14 @@
     const sprayTargets = [
       { key: "shed", x: 82, y: 16 },
       { key: "tree", x: 14, y: 17 }
+    ];
+    const rosiePatrolTargets = [
+      { x: 14, y: 16 },
+      { x: 84, y: 16 },
+      { x: 84, y: 84 },
+      { x: 14, y: 84 },
+      { x: 22, y: 48 },
+      { x: 78, y: 48 }
     ];
     const catSpritePalette = window.CATS64SpriteAssets.catPalette;
     const catSpritePixels = window.CATS64SpriteAssets.catPixels;
@@ -1335,6 +1346,8 @@
     function logRosieStateChange(reason, extra = "") {
       const state = rosieState.returning
         ? "returning"
+        : rosieState.circlingYard
+          ? "circling-yard"
         : rosieState.hiddenWander
           ? rosieState.catChasing
             ? "hidden-wander-cat-chasing"
@@ -1344,6 +1357,37 @@
             : "inactive";
       const position = `x ${rosieState.x.toFixed(1)}, y ${rosieState.y.toFixed(1)}`;
       setStatus(`Rosie state -> ${state}. Reason: ${reason}. Position: ${position}${extra ? `. ${extra}` : ""}`);
+    }
+
+    function lineCrossesHouse(ax, ay, bx, by, allowDoorway = false) {
+      const travel = distance(ax, ay, bx, by);
+      const sampleCount = Math.max(8, Math.ceil(travel / 3));
+
+      for (let index = 1; index < sampleCount; index += 1) {
+        const ratio = index / sampleCount;
+        const sampleX = ax + (bx - ax) * ratio;
+        const sampleY = ay + (by - ay) * ratio;
+        if (collidesWithHouse(sampleX, sampleY, allowDoorway)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    function getNearestRosiePatrolIndex(x, y) {
+      let bestIndex = 0;
+      let bestDistance = Infinity;
+
+      rosiePatrolTargets.forEach((target, index) => {
+        const gap = distance(x, y, target.x, target.y);
+        if (gap < bestDistance) {
+          bestDistance = gap;
+          bestIndex = index;
+        }
+      });
+
+      return bestIndex;
     }
 
     function createScorePopup(x, y, text, variant = "score") {
@@ -1984,12 +2028,15 @@
       rosieState.returning = false;
       rosieState.hiddenWander = false;
       rosieState.catChasing = false;
+      rosieState.circlingYard = false;
       rosieState.obstacleTurnBias = chance(0.5) ? 1 : -1;
       rosieState.x = rosieState.entryX;
       rosieState.y = rosieState.entryY;
       rosieState.barkCooldown = 180;
       rosieState.wanderTimer = 0;
       rosieState.wanderAngle = Math.random() * Math.PI * 2;
+      rosieState.circlingTimer = 0;
+      rosieState.circlingTargetIndex = getNearestRosiePatrolIndex(rosieState.x, rosieState.y);
       renderRosie();
       playRosieBark();
       setStatus("Rosie squeezed through the fence. Most cats are scrambling.");
@@ -2024,6 +2071,9 @@
         return;
       }
 
+      const playerHidden = playerState.hidden;
+      const playerBlockedByHouse = !playerHidden && lineCrossesHouse(rosieState.x, rosieState.y, playerState.x, playerState.y, false);
+
       if (rosieState.barkCooldown > 0) {
         rosieState.barkCooldown -= delta;
       } else if (chance(0.008 * delta)) {
@@ -2031,14 +2081,16 @@
         rosieState.barkCooldown = 180 + Math.random() * 90;
       }
 
-      if (!rosieState.returning && playerState.hidden && !rosieState.hiddenWander) {
+      if (!rosieState.returning && playerHidden && !rosieState.hiddenWander) {
         if (chance(0.5)) {
           rosieState.returning = true;
+          rosieState.circlingYard = false;
           rosieState.barkCooldown = 120;
           setStatus("Rosie lost sight of you at the house and is trotting back out through the fence.");
           logRosieStateChange("player became hidden at the house");
         } else {
           rosieState.hiddenWander = true;
+          rosieState.circlingYard = false;
           rosieState.catChasing = chance(0.5);
           rosieState.wanderTimer = 0;
           rosieState.wanderAngle = Math.random() * Math.PI * 2;
@@ -2049,12 +2101,27 @@
         }
       }
 
-      if (rosieState.hiddenWander && !playerState.hidden) {
+      if (rosieState.hiddenWander && !playerHidden) {
         rosieState.hiddenWander = false;
         rosieState.catChasing = false;
         rosieState.wanderTimer = 0;
         setStatus("Rosie spotted you back in the yard and is trotting over for a hello.");
         logRosieStateChange("player became visible again");
+      }
+
+      if (!rosieState.returning && !playerHidden && !rosieState.hiddenWander) {
+        if (!rosieState.circlingYard && playerBlockedByHouse) {
+          rosieState.circlingYard = true;
+          rosieState.circlingTimer = 180 + Math.random() * 120;
+          rosieState.circlingTargetIndex = getNearestRosiePatrolIndex(rosieState.x, rosieState.y);
+          setStatus("Rosie knows you're nearby and starts circling the yard to find you.");
+          logRosieStateChange("house blocked line of sight to player");
+        } else if (rosieState.circlingYard && !playerBlockedByHouse) {
+          rosieState.circlingYard = false;
+          rosieState.circlingTimer = 0;
+          setStatus("Rosie spotted you clearly again and trots back into a hello chase.");
+          logRosieStateChange("clear line of sight to player restored");
+        }
       }
 
       if (rosieState.returning) {
@@ -2087,6 +2154,15 @@
           const wanderY = rosieState.y + Math.sin(rosieState.wanderAngle) * 8;
           moveTowardAvoidingHouse(rosieState, wanderX, wanderY, rosieState.speed * 0.9 * delta, false);
         }
+      } else if (rosieState.circlingYard) {
+        rosieState.circlingTimer -= delta;
+        const patrolTarget = rosiePatrolTargets[rosieState.circlingTargetIndex];
+        moveTowardAvoidingHouse(rosieState, patrolTarget.x, patrolTarget.y, rosieState.speed * 0.94 * delta, false);
+
+        if (distance(rosieState.x, rosieState.y, patrolTarget.x, patrolTarget.y) < 4.5 || rosieState.circlingTimer <= 0) {
+          rosieState.circlingTargetIndex = (rosieState.circlingTargetIndex + 1) % rosiePatrolTargets.length;
+          rosieState.circlingTimer = 140 + Math.random() * 100;
+        }
       } else {
         moveTowardAvoidingHouse(rosieState, playerState.x, playerState.y, rosieState.speed * delta, false);
       }
@@ -2094,10 +2170,11 @@
       rosieState.x = clamp(rosieState.x, rosieState.returning ? 1.5 : 6, 91);
       rosieState.y = clamp(rosieState.y, 6, 91);
 
-      if (!rosieState.returning && !playerState.hidden && distance(rosieState.x, rosieState.y, playerState.x, playerState.y) <= rosieState.helloRadius) {
+      if (!rosieState.returning && !playerHidden && distance(rosieState.x, rosieState.y, playerState.x, playerState.y) <= rosieState.helloRadius) {
         rosieState.returning = true;
         rosieState.hiddenWander = false;
         rosieState.catChasing = false;
+        rosieState.circlingYard = false;
         rosieState.barkCooldown = 120;
         setStatus("Rosie got her hello and is trotting back out through the fence.");
         logRosieStateChange("hello contact with player");
@@ -2108,6 +2185,7 @@
         rosieState.returning = false;
         rosieState.hiddenWander = false;
         rosieState.catChasing = false;
+        rosieState.circlingYard = false;
         renderRosie();
         resetRosieCooldown(1800);
         setStatus("Rosie ran back out through the fence hole.");
