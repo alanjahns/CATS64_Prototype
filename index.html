@@ -42,9 +42,15 @@
       </div>
 
       <section class="controls-bar">
-        <div class="controls-card">
-          <strong>Controls</strong>
-          <p>`WASD` or arrow keys to move. Press `Space` to drop food, `P` to pause, and `F` for fullscreen.</p>
+        <div class="controls-card controls-card-guide">
+          <strong>Quick Guide</strong>
+          <ul class="quick-guide-list">
+            <li>`WASD` or arrow keys to move, `Space` bar to give food</li>
+            <li>`P` pauses or unpauses</li>
+            <li>`F` fullscreen or smallscreen</li>
+            <li>Bring food to fighting cats to get a bonus</li>
+            <li>See `How To Play` section for more details</li>
+          </ul>
         </div>
         <div class="controls-card">
           <strong>Status</strong>
@@ -58,20 +64,19 @@
             <p class="status-note">Downloads a timestamped log file you can move into `LOGS/` for review. XML groups movement spam into sequences.</p>
           </div>
         </div>
-        <div class="controls-card">
-          <strong>Food Supply</strong>
-          <div class="food-meter" aria-label="Player food supply">
-            <div class="food-meter-track">
-              <div class="food-meter-fill" id="foodMeterFill"></div>
+        <div class="controls-card controls-card-supplies">
+          <strong>Food And Trips</strong>
+          <div class="food-trip-stack">
+            <div class="food-meter" aria-label="Player food supply">
+              <div class="food-meter-track">
+                <div class="food-meter-fill" id="foodMeterFill"></div>
+              </div>
+              <p id="foodMeterText">Food: 10 / 10</p>
             </div>
-            <p id="foodMeterText">Food: 10 / 10</p>
-          </div>
-        </div>
-        <div class="controls-card">
-          <strong>Trip Counter</strong>
-          <div class="trip-meter">
-            <p id="tripCounterText">Trips: 0 / 5</p>
-            <p id="tripCounterNote">Testing mode: trips are tracked, and every 1000 points recovers one life.</p>
+            <div class="trip-meter">
+              <p id="tripCounterText">Trips: 0 / 5</p>
+              <p id="tripCounterNote">Testing mode: trips are tracked, and every 1000 points recovers one life.</p>
+            </div>
           </div>
         </div>
         <div class="controls-card controls-card-dev">
@@ -271,11 +276,11 @@
       <section class="qa-panel">
         <div class="qa-card">
           <h3>What To QA</h3>
-          <p>Does the yard feel like a strong top-down play space with enough open lanes, pressure points, and obvious landmarks?</p>
+          <p>I want to keep them for further work but they are out of date right now</p>
         </div>
         <div class="qa-card">
           <h3>Next Intended Milestone</h3>
-          <p>Player and cat movement with placeholder graphics, using this layout as the first real navigation test bed.</p>
+          <p>I want to keep them for further work but they are out of date right now</p>
         </div>
       </section>
 
@@ -330,7 +335,7 @@
       </section>
 
       <p class="build-stamp" aria-label="Prototype build version">
-        Build <span class="build-stamp-value">v00.37</span> | Pushed <span class="build-stamp-value">2026-04-26</span>
+        Build <span class="build-stamp-value">v00.37</span> | Pushed <span class="build-stamp-value">2026-04-26 02:23 PM PDT</span>
       </p>
     </section>
   </main>

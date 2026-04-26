@@ -218,7 +218,7 @@ h1 {
 
 .controls-bar {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -240,6 +240,21 @@ h1 {
   margin-bottom: 0;
   color: var(--muted);
   line-height: 1.4;
+}
+
+.controls-card-guide {
+  min-width: 0;
+}
+
+.quick-guide-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.quick-guide-list li + li {
+  margin-top: 0.25rem;
 }
 
 .status-panel {
@@ -277,6 +292,15 @@ h1 {
 .status-note {
   font-size: 0.78rem;
   color: #82654a;
+}
+
+.controls-card-supplies {
+  min-width: 0;
+}
+
+.food-trip-stack {
+  display: grid;
+  gap: 0.7rem;
 }
 
 .controls-card-dev {
