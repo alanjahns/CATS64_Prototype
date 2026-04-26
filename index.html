@@ -85,6 +85,10 @@
             <input type="checkbox" id="rosieDevToggle">
             <span>Allow Rosie below level 3 for testing.</span>
           </label>
+          <label class="dev-toggle" for="gameOverDevToggle">
+            <input type="checkbox" id="gameOverDevToggle">
+            <span>Enforce real game over at 0/5 lives.</span>
+          </label>
           <button class="dev-action-button" id="tnvrDevButton" type="button">Run TNVR Scene</button>
         </div>
       </section>
@@ -116,6 +120,17 @@
                   </button>
                 </div>
                 <p class="start-screen-note">Keyboard shortcut: press <strong>1</strong>, <strong>2</strong>, or <strong>3</strong> to start.</p>
+              </div>
+            </div>
+            <div class="game-over-screen is-hidden" id="gameOverScreen">
+              <div class="start-screen-panel game-over-panel">
+                <p class="start-screen-kicker">Run Over</p>
+                <h3>Game Over</h3>
+                <p class="start-screen-copy">Too many trips. The yard got away from you this round.</p>
+                <button class="start-button start-button-medium game-over-button" id="playAgainButton" type="button">
+                  <span class="start-button-name">Play Again</span>
+                  <span class="start-button-detail">Go back to the starting pressure screen.</span>
+                </button>
               </div>
             </div>
             <div class="zone zone-patch"></div>
@@ -380,7 +395,10 @@
     const tripCounterText = document.getElementById("tripCounterText");
     const tripCounterNote = document.getElementById("tripCounterNote");
     const startScreen = document.getElementById("startScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const playAgainButton = document.getElementById("playAgainButton");
     const startButtons = [...document.querySelectorAll(".start-button")];
+    const gameOverDevToggle = document.getElementById("gameOverDevToggle");
     const sprayMarks = {
       tree: document.getElementById("sprayTree"),
       shed: document.getElementById("sprayShed")
@@ -464,6 +482,7 @@
     let tripVoiceToggle = false;
     let isPaused = false;
     let gameStarted = false;
+    let gameOver = false;
     let lastFrame = performance.now();
     let nextFoodId = 1;
     let spawnCooldown = 240;
@@ -690,6 +709,38 @@
 
     function setStartScreenVisible(visible) {
       startScreen.classList.toggle("is-hidden", !visible);
+    }
+
+    function setGameOverVisible(visible) {
+      gameOverScreen.classList.toggle("is-hidden", !visible);
+    }
+
+    function returnToStartScreen() {
+      gameStarted = false;
+      gameOver = false;
+      isPaused = false;
+      pressedKeys.clear();
+      tnvrSequence.active = false;
+      renderTNVRSequence();
+      setGameOverVisible(false);
+      setStartScreenVisible(true);
+      renderTripCounter();
+      setStatus("Choose a starting difficulty in the yard view to begin the run.");
+    }
+
+    function triggerGameOver() {
+      gameOver = true;
+      gameStarted = false;
+      isPaused = false;
+      pressedKeys.clear();
+      playerState.refilling = false;
+      playerState.hidden = false;
+      tnvrSequence.active = false;
+      renderTNVRSequence();
+      renderPlayer();
+      setStartScreenVisible(false);
+      setGameOverVisible(true);
+      setStatus("Game over. Press Play Again to choose a new starting pressure.");
     }
 
     function updateSelectedDifficultyButtons() {
@@ -1189,7 +1240,11 @@
       tripCounterText.textContent = `Trips: ${playerState.tripCount} / ${maxTrips}`;
       const livesLeft = Math.max(0, maxTrips - playerState.tripCount);
       livesText.textContent = `${livesLeft}/${maxTrips}`;
-      if (playerState.tripCount >= maxTrips) {
+      if (gameOverDevToggle.checked) {
+        tripCounterNote.textContent = playerState.tripCount >= maxTrips
+          ? "Game over is enabled and all lives are gone."
+          : "Game over is enabled at 0/5 lives.";
+      } else if (playerState.tripCount >= maxTrips) {
         tripCounterNote.textContent = "Testing mode: 5+ trips reached, but game over is intentionally disabled.";
       } else {
         tripCounterNote.textContent = "Testing mode: trips are tracked, and every 1000 points recovers one life.";
@@ -1684,6 +1739,7 @@
 
     function startGame(difficultyKey) {
       selectedDifficultyKey = difficultyKey;
+      gameOver = false;
       currentPressureTier = 0;
       nextPressureGoal = pointsPerPressureTier;
       nextBonusLifeScore = bonusLifeEveryPoints;
@@ -1746,6 +1802,7 @@
       renderPeacemakerFlash();
       renderTrap();
       renderRosie();
+      setGameOverVisible(false);
       setStartScreenVisible(false);
       setStatus(`${profile.label} started with ${profile.startCats} cats in the yard. Reach ${nextPressureGoal} points to raise the pressure.`);
     }
@@ -2502,6 +2559,10 @@
           renderFoodMeter();
           renderTripCounter();
           renderPlayer();
+          if (gameOverDevToggle.checked && playerState.tripCount >= maxTrips) {
+            triggerGameOver();
+            break;
+          }
           setStatus(foodLost > 0
             ? `Cat trip! Lost ${foodLost} food. Trips: ${playerState.tripCount}/${maxTrips}.`
             : `Cat trip! Trips: ${playerState.tripCount}/${maxTrips}.`);
@@ -2595,7 +2656,7 @@
         return;
       }
 
-      if (!gameStarted) {
+      if (!gameStarted || gameOver) {
         requestAnimationFrame(step);
         return;
       }
@@ -2751,6 +2812,21 @@
       }
       startTNVRSequence(null, true);
       setStatus("Running TNVR demo sequence.");
+    });
+
+    gameOverDevToggle.addEventListener("change", () => {
+      renderTripCounter();
+      if (gameOverDevToggle.checked && gameStarted && playerState.tripCount >= maxTrips) {
+        triggerGameOver();
+        return;
+      }
+      setStatus(gameOverDevToggle.checked
+        ? "Real game over is enabled in the Dev Toggle box."
+        : "Testing mode restored. Reaching 0/5 lives will not end the run.");
+    });
+
+    playAgainButton.addEventListener("click", () => {
+      returnToStartScreen();
     });
 
     dumpStatusLogButton.addEventListener("click", () => {

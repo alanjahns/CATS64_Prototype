@@ -414,6 +414,26 @@ h1 {
   display: none;
 }
 
+.game-over-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
+  background:
+    linear-gradient(180deg, rgba(45, 13, 13, 0.48), rgba(23, 8, 8, 0.72)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035) 0 3px,
+      rgba(0, 0, 0, 0) 3px 6px
+    );
+  z-index: 9;
+}
+
+.game-over-screen.is-hidden {
+  display: none;
+}
+
 .start-screen-panel {
   width: min(100%, 40rem);
   padding: 1.2rem 1.1rem 1rem;
@@ -423,6 +443,15 @@ h1 {
     #f2deae;
   box-shadow: 10px 10px 0 rgba(29, 24, 18, 0.3);
   text-align: center;
+}
+
+.game-over-panel {
+  max-width: 32rem;
+}
+
+.game-over-button {
+  margin: 0.2rem auto 0;
+  max-width: 18rem;
 }
 
 .start-screen-kicker {
