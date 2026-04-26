@@ -112,6 +112,19 @@ h1 {
   padding: 1rem;
 }
 
+.build-stamp {
+  margin: 1rem 0 0;
+  text-align: center;
+  color: #8d1f1f;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.build-stamp-value {
+  color: #b42020;
+}
+
 .yard-frame:fullscreen {
   width: 100vw;
   height: 100vh;
