@@ -350,7 +350,7 @@
       </section>
 
       <p class="build-stamp" aria-label="Prototype build version">
-        Build <span class="build-stamp-value">v00.38</span> | Pushed <span class="build-stamp-value">2026-04-26 04:18 PM PDT</span>
+        Build <span class="build-stamp-value">v00.39</span> | Pushed <span class="build-stamp-value">2026-05-03 06:35 PM PDT</span>
       </p>
     </section>
   </main>
@@ -415,6 +415,8 @@
       y: 65,
       speed: 0.22,
       facing: "right",
+      walkFrame: 0,
+      walkAnimTimer: 0,
       food: 10,
       foodCapacity: 10,
       refilling: false,
@@ -602,6 +604,13 @@
     playerSprites.left = {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Black","hex":"#000000"},{"id":2,"name":"White","hex":"#ffffff"},{"id":3,"name":"Red","hex":"#813338"},{"id":4,"name":"Cyan","hex":"#75cec8"},{"id":5,"name":"Purple","hex":"#8e3c97"},{"id":6,"name":"Green","hex":"#56ac4d"},{"id":7,"name":"Blue","hex":"#2e2c9b"},{"id":8,"name":"Yellow","hex":"#edf171"},{"id":9,"name":"Orange","hex":"#8e5029"},{"id":10,"name":"Brown","hex":"#553800"},{"id":11,"name":"Light Red","hex":"#c46c71"},{"id":12,"name":"Dark Gray","hex":"#4a4a4a"},{"id":13,"name":"Gray","hex":"#7b7b7b"},{"id":14,"name":"Light Green","hex":"#a9ff9f"},{"id":15,"name":"Light Blue","hex":"#706deb"},{"id":16,"name":"Light Gray","hex":"#b2b2b2"},{"id":17,"name":"Cream","hex":"#f7e6b5"},{"id":18,"name":"Warm Sand","hex":"#d7b98c"},{"id":19,"name":"Tan Fur","hex":"#b88a5a"},{"id":20,"name":"Dark Fur","hex":"#5a4332"},{"id":21,"name":"Orange Fur","hex":"#d87a38"},{"id":22,"name":"Gold","hex":"#f0c95e"},{"id":23,"name":"Pink Nose","hex":"#e39aa5"},{"id":24,"name":"Rose","hex":"#b75f6c"},{"id":25,"name":"Slate","hex":"#51607a"},{"id":26,"name":"Denim","hex":"#3d5a98"},{"id":27,"name":"Leaf","hex":"#5c8d43"},{"id":28,"name":"Grass","hex":"#84a94f"},{"id":29,"name":"Mint","hex":"#9fd6b2"},{"id":30,"name":"Sky","hex":"#68a4cf"},{"id":31,"name":"Lavender","hex":"#a58cc7"},{"id":32,"name":"Sunset","hex":"#e38a6a"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]};
     playerSprites.right = {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Black","hex":"#000000"},{"id":2,"name":"White","hex":"#ffffff"},{"id":3,"name":"Red","hex":"#813338"},{"id":4,"name":"Cyan","hex":"#75cec8"},{"id":5,"name":"Purple","hex":"#8e3c97"},{"id":6,"name":"Green","hex":"#56ac4d"},{"id":7,"name":"Blue","hex":"#2e2c9b"},{"id":8,"name":"Yellow","hex":"#edf171"},{"id":9,"name":"Orange","hex":"#8e5029"},{"id":10,"name":"Brown","hex":"#553800"},{"id":11,"name":"Light Red","hex":"#c46c71"},{"id":12,"name":"Dark Gray","hex":"#4a4a4a"},{"id":13,"name":"Gray","hex":"#7b7b7b"},{"id":14,"name":"Light Green","hex":"#a9ff9f"},{"id":15,"name":"Light Blue","hex":"#706deb"},{"id":16,"name":"Light Gray","hex":"#b2b2b2"},{"id":17,"name":"Cream","hex":"#f7e6b5"},{"id":18,"name":"Warm Sand","hex":"#d7b98c"},{"id":19,"name":"Tan Fur","hex":"#b88a5a"},{"id":20,"name":"Dark Fur","hex":"#5a4332"},{"id":21,"name":"Orange Fur","hex":"#d87a38"},{"id":22,"name":"Gold","hex":"#f0c95e"},{"id":23,"name":"Pink Nose","hex":"#e39aa5"},{"id":24,"name":"Rose","hex":"#b75f6c"},{"id":25,"name":"Slate","hex":"#51607a"},{"id":26,"name":"Denim","hex":"#3d5a98"},{"id":27,"name":"Leaf","hex":"#5c8d43"},{"id":28,"name":"Grass","hex":"#84a94f"},{"id":29,"name":"Mint","hex":"#9fd6b2"},{"id":30,"name":"Sky","hex":"#68a4cf"},{"id":31,"name":"Lavender","hex":"#a58cc7"},{"id":32,"name":"Sunset","hex":"#e38a6a"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]};
 
+    const bundledPlayerWalkSprites = {
+      left_1: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Black","hex":"#000000"},{"id":2,"name":"White","hex":"#ffffff"},{"id":3,"name":"Red","hex":"#813338"},{"id":4,"name":"Cyan","hex":"#75cec8"},{"id":5,"name":"Purple","hex":"#8e3c97"},{"id":6,"name":"Green","hex":"#56ac4d"},{"id":7,"name":"Blue","hex":"#2e2c9b"},{"id":8,"name":"Yellow","hex":"#edf171"},{"id":9,"name":"Orange","hex":"#8e5029"},{"id":10,"name":"Brown","hex":"#553800"},{"id":11,"name":"Light Red","hex":"#c46c71"},{"id":12,"name":"Dark Gray","hex":"#4a4a4a"},{"id":13,"name":"Gray","hex":"#7b7b7b"},{"id":14,"name":"Light Green","hex":"#a9ff9f"},{"id":15,"name":"Light Blue","hex":"#706deb"},{"id":16,"name":"Light Gray","hex":"#b2b2b2"},{"id":17,"name":"Cream","hex":"#f7e6b5"},{"id":18,"name":"Warm Sand","hex":"#d7b98c"},{"id":19,"name":"Tan Fur","hex":"#b88a5a"},{"id":20,"name":"Dark Fur","hex":"#5a4332"},{"id":21,"name":"Orange Fur","hex":"#d87a38"},{"id":22,"name":"Gold","hex":"#f0c95e"},{"id":23,"name":"Pink Nose","hex":"#e39aa5"},{"id":24,"name":"Rose","hex":"#b75f6c"},{"id":25,"name":"Slate","hex":"#51607a"},{"id":26,"name":"Denim","hex":"#3d5a98"},{"id":27,"name":"Leaf","hex":"#5c8d43"},{"id":28,"name":"Grass","hex":"#84a94f"},{"id":29,"name":"Mint","hex":"#9fd6b2"},{"id":30,"name":"Sky","hex":"#68a4cf"},{"id":31,"name":"Lavender","hex":"#a58cc7"},{"id":32,"name":"Sunset","hex":"#e38a6a"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}, 
+      left_2: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Black","hex":"#000000"},{"id":2,"name":"White","hex":"#ffffff"},{"id":3,"name":"Red","hex":"#813338"},{"id":4,"name":"Cyan","hex":"#75cec8"},{"id":5,"name":"Purple","hex":"#8e3c97"},{"id":6,"name":"Green","hex":"#56ac4d"},{"id":7,"name":"Blue","hex":"#2e2c9b"},{"id":8,"name":"Yellow","hex":"#edf171"},{"id":9,"name":"Orange","hex":"#8e5029"},{"id":10,"name":"Brown","hex":"#553800"},{"id":11,"name":"Light Red","hex":"#c46c71"},{"id":12,"name":"Dark Gray","hex":"#4a4a4a"},{"id":13,"name":"Gray","hex":"#7b7b7b"},{"id":14,"name":"Light Green","hex":"#a9ff9f"},{"id":15,"name":"Light Blue","hex":"#706deb"},{"id":16,"name":"Light Gray","hex":"#b2b2b2"},{"id":17,"name":"Cream","hex":"#f7e6b5"},{"id":18,"name":"Warm Sand","hex":"#d7b98c"},{"id":19,"name":"Tan Fur","hex":"#b88a5a"},{"id":20,"name":"Dark Fur","hex":"#5a4332"},{"id":21,"name":"Orange Fur","hex":"#d87a38"},{"id":22,"name":"Gold","hex":"#f0c95e"},{"id":23,"name":"Pink Nose","hex":"#e39aa5"},{"id":24,"name":"Rose","hex":"#b75f6c"},{"id":25,"name":"Slate","hex":"#51607a"},{"id":26,"name":"Denim","hex":"#3d5a98"},{"id":27,"name":"Leaf","hex":"#5c8d43"},{"id":28,"name":"Grass","hex":"#84a94f"},{"id":29,"name":"Mint","hex":"#9fd6b2"},{"id":30,"name":"Sky","hex":"#68a4cf"},{"id":31,"name":"Lavender","hex":"#a58cc7"},{"id":32,"name":"Sunset","hex":"#e38a6a"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}, 
+      right_1: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Black","hex":"#000000"},{"id":2,"name":"White","hex":"#ffffff"},{"id":3,"name":"Red","hex":"#813338"},{"id":4,"name":"Cyan","hex":"#75cec8"},{"id":5,"name":"Purple","hex":"#8e3c97"},{"id":6,"name":"Green","hex":"#56ac4d"},{"id":7,"name":"Blue","hex":"#2e2c9b"},{"id":8,"name":"Yellow","hex":"#edf171"},{"id":9,"name":"Orange","hex":"#8e5029"},{"id":10,"name":"Brown","hex":"#553800"},{"id":11,"name":"Light Red","hex":"#c46c71"},{"id":12,"name":"Dark Gray","hex":"#4a4a4a"},{"id":13,"name":"Gray","hex":"#7b7b7b"},{"id":14,"name":"Light Green","hex":"#a9ff9f"},{"id":15,"name":"Light Blue","hex":"#706deb"},{"id":16,"name":"Light Gray","hex":"#b2b2b2"},{"id":17,"name":"Cream","hex":"#f7e6b5"},{"id":18,"name":"Warm Sand","hex":"#d7b98c"},{"id":19,"name":"Tan Fur","hex":"#b88a5a"},{"id":20,"name":"Dark Fur","hex":"#5a4332"},{"id":21,"name":"Orange Fur","hex":"#d87a38"},{"id":22,"name":"Gold","hex":"#f0c95e"},{"id":23,"name":"Pink Nose","hex":"#e39aa5"},{"id":24,"name":"Rose","hex":"#b75f6c"},{"id":25,"name":"Slate","hex":"#51607a"},{"id":26,"name":"Denim","hex":"#3d5a98"},{"id":27,"name":"Leaf","hex":"#5c8d43"},{"id":28,"name":"Grass","hex":"#84a94f"},{"id":29,"name":"Mint","hex":"#9fd6b2"},{"id":30,"name":"Sky","hex":"#68a4cf"},{"id":31,"name":"Lavender","hex":"#a58cc7"},{"id":32,"name":"Sunset","hex":"#e38a6a"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}, 
+      right_2: {"type":"cats64-sprite","version":1,"name":"yard-cat-placeholder","width":24,"height":24,"palette":[{"id":0,"name":"Transparent","hex":null},{"id":1,"name":"Black","hex":"#000000"},{"id":2,"name":"White","hex":"#ffffff"},{"id":3,"name":"Red","hex":"#813338"},{"id":4,"name":"Cyan","hex":"#75cec8"},{"id":5,"name":"Purple","hex":"#8e3c97"},{"id":6,"name":"Green","hex":"#56ac4d"},{"id":7,"name":"Blue","hex":"#2e2c9b"},{"id":8,"name":"Yellow","hex":"#edf171"},{"id":9,"name":"Orange","hex":"#8e5029"},{"id":10,"name":"Brown","hex":"#553800"},{"id":11,"name":"Light Red","hex":"#c46c71"},{"id":12,"name":"Dark Gray","hex":"#4a4a4a"},{"id":13,"name":"Gray","hex":"#7b7b7b"},{"id":14,"name":"Light Green","hex":"#a9ff9f"},{"id":15,"name":"Light Blue","hex":"#706deb"},{"id":16,"name":"Light Gray","hex":"#b2b2b2"},{"id":17,"name":"Cream","hex":"#f7e6b5"},{"id":18,"name":"Warm Sand","hex":"#d7b98c"},{"id":19,"name":"Tan Fur","hex":"#b88a5a"},{"id":20,"name":"Dark Fur","hex":"#5a4332"},{"id":21,"name":"Orange Fur","hex":"#d87a38"},{"id":22,"name":"Gold","hex":"#f0c95e"},{"id":23,"name":"Pink Nose","hex":"#e39aa5"},{"id":24,"name":"Rose","hex":"#b75f6c"},{"id":25,"name":"Slate","hex":"#51607a"},{"id":26,"name":"Denim","hex":"#3d5a98"},{"id":27,"name":"Leaf","hex":"#5c8d43"},{"id":28,"name":"Grass","hex":"#84a94f"},{"id":29,"name":"Mint","hex":"#9fd6b2"},{"id":30,"name":"Sky","hex":"#68a4cf"},{"id":31,"name":"Lavender","hex":"#a58cc7"},{"id":32,"name":"Sunset","hex":"#e38a6a"}],"pixels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+    };
+
     async function loadSpriteAsset(path, fallbackSprite) {
       try {
         const response = await fetch(path);
@@ -614,14 +623,29 @@
       }
     }
 
+    playerSprites.leftFrames = [bundledPlayerWalkSprites.left_1, bundledPlayerWalkSprites.left_2];
+    playerSprites.rightFrames = [bundledPlayerWalkSprites.right_1, bundledPlayerWalkSprites.right_2];
+
     async function loadPlayerSprites() {
-      const [normal, tripped] = await Promise.all([
+      const [normal, tripped, left1, left2, right1, right2] = await Promise.all([
         loadSpriteAsset("./ASSETS/sprites/player.json", playerSprites.normal),
-        loadSpriteAsset("./ASSETS/sprites/player_tripped.json", playerSprites.tripped)
+        loadSpriteAsset("./ASSETS/sprites/player_tripped.json", playerSprites.tripped),
+        loadSpriteAsset("./ASSETS/sprites/player_left_1.json", bundledPlayerWalkSprites.left_1),
+        loadSpriteAsset("./ASSETS/sprites/player_left_2.json", bundledPlayerWalkSprites.left_2),
+        loadSpriteAsset("./ASSETS/sprites/player_right_1.json", bundledPlayerWalkSprites.right_1),
+        loadSpriteAsset("./ASSETS/sprites/player_right_2.json", bundledPlayerWalkSprites.right_2)
       ]);
 
       playerSprites.normal = normal;
       playerSprites.tripped = tripped;
+      playerSprites.leftFrames = [
+        left1 || bundledPlayerWalkSprites.left_1,
+        left2 || left1 || bundledPlayerWalkSprites.left_2 || bundledPlayerWalkSprites.left_1
+      ];
+      playerSprites.rightFrames = [
+        right1 || bundledPlayerWalkSprites.right_1,
+        right2 || right1 || bundledPlayerWalkSprites.right_2 || bundledPlayerWalkSprites.right_1
+      ];
       renderPlayer();
     }
 
@@ -1201,9 +1225,9 @@
       const currentSprite = playerState.trippedTimer > 0
         ? playerSprites.tripped
         : playerState.facing === "left"
-          ? playerSprites.left
+          ? playerSprites.leftFrames[playerState.walkFrame] || playerSprites.left
           : playerState.facing === "right"
-            ? playerSprites.right
+            ? playerSprites.rightFrames[playerState.walkFrame] || playerSprites.right
             : playerSprites.normal;
       drawSpriteToCanvas(playerSpriteCanvas, playerSpriteContext, currentSprite);
     }
@@ -1773,6 +1797,8 @@
       playerState.x = 47;
       playerState.y = 27;
       playerState.facing = "right";
+      playerState.walkFrame = 0;
+      playerState.walkAnimTimer = 0;
       playerState.food = playerState.foodCapacity;
       playerState.refilling = false;
       playerState.refillProgress = 0;
@@ -2707,6 +2733,7 @@
 
         let nextX = playerState.x;
         let nextY = playerState.y;
+        let horizontalInput = 0;
 
         if (pressedKeys.has("arrowup") || pressedKeys.has("w")) {
           nextY -= playerState.speed * delta;
@@ -2719,11 +2746,13 @@
         if (pressedKeys.has("arrowleft") || pressedKeys.has("a")) {
           nextX -= playerState.speed * delta;
           playerState.facing = "left";
+          horizontalInput -= 1;
           moved = true;
         }
         if (pressedKeys.has("arrowright") || pressedKeys.has("d")) {
           nextX += playerState.speed * delta;
           playerState.facing = "right";
+          horizontalInput += 1;
           moved = true;
         }
 
@@ -2733,6 +2762,17 @@
         if (!collidesWithHouse(nextX, nextY, true)) {
           playerState.x = nextX;
           playerState.y = nextY;
+        }
+
+        if (horizontalInput !== 0) {
+          playerState.walkAnimTimer += delta;
+          if (playerState.walkAnimTimer >= 9) {
+            playerState.walkFrame = playerState.walkFrame === 0 ? 1 : 0;
+            playerState.walkAnimTimer = 0;
+          }
+        } else {
+          playerState.walkFrame = 0;
+          playerState.walkAnimTimer = 0;
         }
 
         if (moved) {
