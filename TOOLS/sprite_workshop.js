@@ -146,10 +146,24 @@ const copyButton = document.getElementById("copyButton");
 const downloadButton = document.getElementById("downloadButton");
 const loadButton = document.getElementById("loadButton");
 const loadFileInput = document.getElementById("loadFileInput");
+const referenceLoadButton = document.getElementById("referenceLoadButton");
+const referenceToggleButton = document.getElementById("referenceToggleButton");
+const referenceSmoothingButton = document.getElementById("referenceSmoothingButton");
+const referenceResetButton = document.getElementById("referenceResetButton");
+const referenceScaleRange = document.getElementById("referenceScaleRange");
+const referenceOpacityRange = document.getElementById("referenceOpacityRange");
+const referenceOffsetXRange = document.getElementById("referenceOffsetXRange");
+const referenceOffsetYRange = document.getElementById("referenceOffsetYRange");
+const referenceMeta = document.getElementById("referenceMeta");
+const referenceFileInput = document.getElementById("referenceFileInput");
 const exportBuffer = document.getElementById("exportBuffer");
 const statusLine = document.getElementById("statusLine");
+const canvasStack = document.getElementById("canvasStack");
+const referenceCanvas = document.getElementById("referenceCanvas");
+const referenceImage = document.getElementById("referenceImage");
 const spriteCanvas = document.getElementById("spriteCanvas");
 const previewCanvas = document.getElementById("previewCanvas");
+const referenceCtx = referenceCanvas.getContext("2d");
 const spriteCtx = spriteCanvas.getContext("2d");
 const previewCtx = previewCanvas.getContext("2d");
 
@@ -161,7 +175,17 @@ const state = {
   pixels: [],
   pointerDown: false,
   history: [],
-  future: []
+  future: [],
+  reference: {
+    image: null,
+    name: "",
+    visible: true,
+    pixelated: true,
+    scale: 1,
+    opacity: 0.45,
+    offsetX: 0,
+    offsetY: 0
+  }
 };
 
 function makePixels(size, fillValue = 0) {
@@ -201,12 +225,20 @@ function updateHistoryButtons() {
 
 function updateCanvasSize() {
   const zoom = Number(zoomRange.value);
+  referenceCanvas.width = state.size;
+  referenceCanvas.height = state.size;
+  referenceCanvas.style.width = `${state.size * zoom}px`;
+  referenceCanvas.style.height = `${state.size * zoom}px`;
   spriteCanvas.width = state.size;
   spriteCanvas.height = state.size;
   spriteCanvas.style.width = `${state.size * zoom}px`;
   spriteCanvas.style.height = `${state.size * zoom}px`;
+  canvasStack.style.width = `${state.size * zoom}px`;
+  canvasStack.style.height = `${state.size * zoom}px`;
   previewCanvas.width = state.size;
   previewCanvas.height = state.size;
+  updateReferenceOffsetRanges();
+  updateReferencePresentation();
 }
 
 function countPaintedPixels() {
@@ -338,6 +370,157 @@ function renderCanvas() {
   paintMeta.textContent = `${countPaintedPixels()} painted pixels`;
   exportBuffer.value = JSON.stringify(buildSpriteDocument(), null, 2);
   updateHistoryButtons();
+}
+
+function updateReferenceMeta() {
+  if (!state.reference.image) {
+    referenceMeta.textContent = "No reference image loaded.";
+    referenceToggleButton.disabled = true;
+    referenceSmoothingButton.disabled = true;
+    referenceResetButton.disabled = true;
+    return;
+  }
+
+  const visibility = state.reference.visible ? "visible" : "hidden";
+  const renderMode = state.reference.pixelated ? "pixel" : "smooth";
+  referenceMeta.textContent = `${state.reference.name} | ${Math.round(state.reference.scale * 100)}% scale | ${Math.round(state.reference.opacity * 100)}% opacity | ${renderMode} | ${visibility}`;
+  referenceToggleButton.disabled = false;
+  referenceSmoothingButton.disabled = false;
+  referenceResetButton.disabled = false;
+  referenceToggleButton.textContent = state.reference.visible ? "Hide Ref" : "Show Ref";
+  referenceSmoothingButton.textContent = state.reference.pixelated ? "Smooth Ref" : "Pixel Ref";
+}
+
+function updateReferencePresentation() {
+  const { image, visible, opacity, scale, offsetX, offsetY, pixelated } = state.reference;
+  const zoom = Number(zoomRange.value);
+  referenceCtx.clearRect(0, 0, state.size, state.size);
+
+  if (!image || !visible) {
+    referenceCanvas.style.opacity = "0";
+    referenceImage.hidden = true;
+    referenceImage.style.opacity = "0";
+    return;
+  }
+
+  referenceImage.src = image.src;
+  referenceImage.style.width = `${state.size * scale * zoom}px`;
+  referenceImage.style.height = `${state.size * scale * zoom}px`;
+  referenceImage.style.transform = `translate(calc(-50% + ${offsetX * zoom}px), calc(-50% + ${offsetY * zoom}px))`;
+  referenceImage.style.opacity = String(opacity);
+
+  if (!pixelated) {
+    referenceCanvas.style.opacity = "0";
+    referenceImage.hidden = false;
+    return;
+  }
+
+  const width = state.size * scale;
+  const height = state.size * scale;
+  const drawX = ((state.size - width) / 2) + offsetX;
+  const drawY = ((state.size - height) / 2) + offsetY;
+
+  referenceImage.hidden = true;
+  referenceImage.style.opacity = "0";
+  referenceCanvas.style.imageRendering = pixelated ? "pixelated" : "auto";
+  referenceCtx.save();
+  referenceCtx.globalAlpha = opacity;
+  referenceCtx.imageSmoothingEnabled = !pixelated;
+  referenceCtx.clearRect(0, 0, state.size, state.size);
+  referenceCtx.drawImage(image, drawX, drawY, width, height);
+  referenceCtx.restore();
+  referenceCanvas.style.opacity = "1";
+}
+
+function updateReferenceOffsetRanges() {
+  const maxOffset = state.size * 2;
+  referenceOffsetXRange.min = String(-maxOffset);
+  referenceOffsetXRange.max = String(maxOffset);
+  referenceOffsetYRange.min = String(-maxOffset);
+  referenceOffsetYRange.max = String(maxOffset);
+}
+
+function syncReferenceControls() {
+  referenceScaleRange.value = String(Math.round(state.reference.scale * 100));
+  referenceOpacityRange.value = String(Math.round(state.reference.opacity * 100));
+  referenceOffsetXRange.value = String(Math.round(state.reference.offsetX));
+  referenceOffsetYRange.value = String(Math.round(state.reference.offsetY));
+  updateReferenceMeta();
+  updateReferencePresentation();
+}
+
+function resetReferenceSettings() {
+  state.reference.scale = 1;
+  state.reference.opacity = 0.45;
+  state.reference.offsetX = 0;
+  state.reference.offsetY = 0;
+  state.reference.visible = true;
+  state.reference.pixelated = true;
+  syncReferenceControls();
+}
+
+function loadReferenceImage() {
+  referenceFileInput.click();
+}
+
+function toggleReferenceVisibility() {
+  if (!state.reference.image) {
+    return;
+  }
+  state.reference.visible = !state.reference.visible;
+  syncReferenceControls();
+  updateStatus(`Reference image ${state.reference.visible ? "shown" : "hidden"}.`);
+}
+
+function toggleReferenceSmoothing() {
+  if (!state.reference.image) {
+    return;
+  }
+  state.reference.pixelated = !state.reference.pixelated;
+  updateReferenceMeta();
+  updateReferencePresentation();
+  updateStatus(`Reference render mode set to ${state.reference.pixelated ? "pixel" : "smooth"}.`);
+}
+
+function handleReferenceRangeInput() {
+  state.reference.scale = Number(referenceScaleRange.value) / 100;
+  state.reference.opacity = Number(referenceOpacityRange.value) / 100;
+  state.reference.offsetX = Number(referenceOffsetXRange.value);
+  state.reference.offsetY = Number(referenceOffsetYRange.value);
+  updateReferenceMeta();
+  updateReferencePresentation();
+}
+
+async function handleReferenceFileSelection() {
+  const [file] = referenceFileInput.files || [];
+  if (!file) {
+    return;
+  }
+
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Could not read reference image."));
+      reader.readAsDataURL(file);
+    });
+
+    const image = await new Promise((resolve, reject) => {
+      const nextImage = new Image();
+      nextImage.onload = () => resolve(nextImage);
+      nextImage.onerror = () => reject(new Error("Could not load reference image."));
+      nextImage.src = dataUrl;
+    });
+
+    state.reference.image = image;
+    state.reference.name = file.name;
+    resetReferenceSettings();
+    updateStatus(`Loaded reference image ${file.name}.`);
+  } catch (error) {
+    updateStatus(error.message || "Could not load reference image.");
+  } finally {
+    referenceFileInput.value = "";
+  }
 }
 
 function buildSpriteDocument() {
@@ -729,7 +912,24 @@ copyButton.addEventListener("click", copyJson);
 downloadButton.addEventListener("click", downloadJson);
 loadButton.addEventListener("click", loadJsonFromFile);
 loadFileInput.addEventListener("change", handleFileSelection);
+referenceLoadButton.addEventListener("click", loadReferenceImage);
+referenceToggleButton.addEventListener("click", toggleReferenceVisibility);
+referenceSmoothingButton.addEventListener("click", toggleReferenceSmoothing);
+referenceResetButton.addEventListener("click", () => {
+  if (!state.reference.image) {
+    return;
+  }
+  resetReferenceSettings();
+  renderCanvas();
+  updateStatus("Reset reference image controls.");
+});
+referenceFileInput.addEventListener("change", handleReferenceFileSelection);
+referenceScaleRange.addEventListener("input", handleReferenceRangeInput);
+referenceOpacityRange.addEventListener("input", handleReferenceRangeInput);
+referenceOffsetXRange.addEventListener("input", handleReferenceRangeInput);
+referenceOffsetYRange.addEventListener("input", handleReferenceRangeInput);
 
 setSize(24);
 renderPalette();
 renderStampTray();
+syncReferenceControls();

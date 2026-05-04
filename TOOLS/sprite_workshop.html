@@ -107,8 +107,49 @@
         </div>
 
         <div class="canvas-shell">
-          <canvas id="spriteCanvas" width="24" height="24" aria-label="Sprite drawing canvas"></canvas>
+          <div class="canvas-stack" id="canvasStack">
+            <canvas id="referenceCanvas" class="reference-canvas" width="24" height="24" aria-hidden="true"></canvas>
+            <img id="referenceImage" class="reference-image" alt="" hidden>
+            <canvas id="spriteCanvas" width="24" height="24" aria-label="Sprite drawing canvas"></canvas>
+          </div>
         </div>
+
+        <section class="reference-panel">
+          <div class="reference-head">
+            <div>
+              <p class="panel-label">Reference</p>
+              <h2>Trace Layer</h2>
+            </div>
+            <div class="button-row">
+              <button id="referenceLoadButton" type="button">Load Ref Image</button>
+              <button id="referenceToggleButton" type="button">Hide Ref</button>
+              <button id="referenceSmoothingButton" type="button">Pixel Ref</button>
+              <button id="referenceResetButton" type="button">Reset Ref</button>
+            </div>
+          </div>
+
+          <div class="reference-grid">
+            <label class="field">
+              <span>Scale</span>
+              <input id="referenceScaleRange" type="range" min="25" max="300" value="100">
+            </label>
+            <label class="field">
+              <span>Opacity</span>
+              <input id="referenceOpacityRange" type="range" min="0" max="100" value="45">
+            </label>
+            <label class="field">
+              <span>Offset X</span>
+              <input id="referenceOffsetXRange" type="range" min="-24" max="24" value="0">
+            </label>
+            <label class="field">
+              <span>Offset Y</span>
+              <input id="referenceOffsetYRange" type="range" min="-24" max="24" value="0">
+            </label>
+          </div>
+
+          <p class="reference-note" id="referenceMeta">No reference image loaded.</p>
+          <input id="referenceFileInput" type="file" accept="image/*" hidden>
+        </section>
 
         <div class="button-row canvas-actions">
           <button id="undoButton" type="button">Undo</button>

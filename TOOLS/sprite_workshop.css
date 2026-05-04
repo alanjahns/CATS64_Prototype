@@ -236,6 +236,32 @@ fieldset {
   margin-top: 0.85rem;
 }
 
+.reference-panel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 3px solid rgba(90, 71, 52, 0.22);
+}
+
+.reference-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.reference-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 button {
   border: 2px solid var(--line);
   padding: 0.72rem 0.95rem;
@@ -271,6 +297,42 @@ button:disabled {
     linear-gradient(180deg, #e7d1a4 0%, #d4ba85 100%);
 }
 
+.canvas-stack {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.reference-canvas,
+.reference-image,
+#spriteCanvas {
+  grid-area: 1 / 1;
+}
+
+.reference-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  background:
+    linear-gradient(45deg, rgba(111, 97, 79, 0.11) 25%, transparent 25%, transparent 75%, rgba(111, 97, 79, 0.11) 75%),
+    linear-gradient(45deg, rgba(111, 97, 79, 0.11) 25%, transparent 25%, transparent 75%, rgba(111, 97, 79, 0.11) 75%);
+  background-position: 0 0, 9px 9px;
+  background-size: 18px 18px;
+}
+
+.reference-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  max-height: none;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+}
+
 #spriteCanvas,
 #previewCanvas {
   image-rendering: pixelated;
@@ -279,12 +341,8 @@ button:disabled {
 
 #spriteCanvas {
   border: 3px solid var(--line);
-  background:
-    linear-gradient(45deg, rgba(111, 97, 79, 0.11) 25%, transparent 25%, transparent 75%, rgba(111, 97, 79, 0.11) 75%),
-    linear-gradient(45deg, rgba(111, 97, 79, 0.11) 25%, transparent 25%, transparent 75%, rgba(111, 97, 79, 0.11) 75%);
-  background-position: 0 0, 9px 9px;
-  background-size: 18px 18px;
   box-shadow: 0 10px 22px rgba(53, 34, 18, 0.22);
+  background: transparent;
 }
 
 .preview-card {
@@ -403,6 +461,14 @@ button:disabled {
 
   .panel-head {
     flex-direction: column;
+  }
+
+  .reference-head {
+    flex-direction: column;
+  }
+
+  .reference-grid {
+    grid-template-columns: 1fr;
   }
 
   .palette {
