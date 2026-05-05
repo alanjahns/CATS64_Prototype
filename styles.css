@@ -380,6 +380,17 @@ h1 {
   border: 4px solid var(--line);
 }
 
+.yard-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+
 .fence-hole {
   position: absolute;
   z-index: 1;
@@ -589,12 +600,7 @@ h1 {
 }
 
 .fence {
-  background:
-    repeating-linear-gradient(
-      90deg,
-      var(--fence-shadow) 0 8px,
-      var(--fence) 8px 18px
-    );
+  background: transparent;
   z-index: 3;
 }
 
@@ -610,12 +616,7 @@ h1 {
   top: 0;
   width: 3.2%;
   height: 100%;
-  background:
-    repeating-linear-gradient(
-      180deg,
-      var(--fence-shadow) 0 8px,
-      var(--fence) 8px 18px
-    );
+  background: transparent;
 }
 
 .fence-top {
@@ -664,7 +665,7 @@ h1 {
 }
 
 .fence-hud-posts::before {
-  content: "| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |";
+  content: "";
 }
 
 .fence-hud-score,
@@ -674,7 +675,7 @@ h1 {
 .fence-hud-lives {
   padding: 0 0.45rem;
   color: #fff8d6;
-  background: rgba(72, 59, 46, 0.1);
+  background: transparent;
 }
 
 .fence-hud-score,
@@ -722,13 +723,8 @@ h1 {
   width: 14%;
   height: 3.2%;
   z-index: 4;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      #dcc59c 0 8px,
-      #cda766 8px 18px
-    );
-  border-top: 3px solid var(--line);
+  background: transparent;
+  border-top: 0;
 }
 
 .gate-top {
@@ -752,29 +748,17 @@ h1 {
 }
 
 .house {
-  left: 31%;
-  top: 32%;
-  width: 38%;
-  height: 28%;
-  color: var(--ink);
-  background: linear-gradient(180deg, #ebdfc5 0%, var(--house) 100%);
+  display: none;
 }
 
 .house::before {
-  content: "";
-  position: absolute;
-  left: -4%;
-  bottom: -18%;
-  width: 108%;
-  height: 24%;
-  background: var(--house-roof);
-  border: 3px solid var(--line);
+  content: none;
 }
 
 .doorway {
-  left: 45.5%;
-  top: 29.5%;
-  width: 11%;
+  left: 40.5%;
+  top: 24.5%;
+  width: 12%;
   height: 8%;
   color: #f7f0de;
   background: linear-gradient(180deg, #8c5a37 0%, var(--door) 100%);
@@ -827,8 +811,8 @@ h1 {
 }
 
 .feeding-slab {
-  left: 17%;
-  top: 36%;
+  left: 8.5%;
+  top: 33%;
   width: 15%;
   height: 26%;
   color: #544a40;
@@ -855,18 +839,18 @@ h1 {
 }
 
 .feeding-plate-a {
-  left: 20.5%;
-  top: 41%;
+  left: 12%;
+  top: 45%;
 }
 
 .feeding-plate-b {
-  left: 28%;
-  top: 49%;
+  left: 18%;
+  top: 53%;
 }
 
 .feeding-plate-c {
-  left: 22%;
-  top: 58%;
+  left: 11%;
+  top: 50%;
 }
 
 .crate {
@@ -952,6 +936,40 @@ h1 {
   aspect-ratio: 1;
   z-index: 2;
   transform: translate(-50%, -50%);
+}
+
+.debug-boundary {
+  position: absolute;
+  display: none;
+  pointer-events: none;
+  z-index: 7;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(29, 24, 18, 0.35) inset;
+}
+
+.debug-boundary.is-visible {
+  display: block;
+}
+
+.debug-boundary-house-main {
+  border-color: rgba(255, 120, 120, 0.95);
+}
+
+.debug-boundary-house-upper {
+  border-color: rgba(255, 175, 90, 0.95);
+}
+
+.debug-boundary-doorway {
+  border-color: rgba(90, 190, 255, 0.95);
+}
+
+.debug-boundary-slab {
+  border-color: rgba(170, 120, 255, 0.95);
+}
+
+.debug-boundary-trap {
+  border-color: rgba(255, 235, 120, 0.95);
 }
 
 .marker.is-hidden {
